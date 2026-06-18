@@ -15,6 +15,7 @@ export const productSchema = z.object({
         publicId: z.string().optional(),
       }),
     ).optional(),
+    image: z.string().optional(),
     size: z.string().optional(),
     ingredients: z.string().optional(),
     howToUse: z.string().optional(),

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { apiRequest } from "@/lib/api";
 
 export function SellerLogin() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export function SellerLogin() {
   // ----------------------------------------------------
   // Submit Handler
   // ----------------------------------------------------
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
@@ -40,58 +41,74 @@ export function SellerLogin() {
 
     setIsSubmitting(true);
 
-    // Simulate login verification
-    setTimeout(() => {
-      if (typeof window !== "undefined") {
-        try {
-          const emailInput = formData.email.toLowerCase().trim();
-          const passwordInput = formData.password;
+    try {
+      const emailInput = formData.email.toLowerCase().trim();
+      const passwordInput = formData.password;
 
-          // Default mock profile credentials
-          const isMockUser = emailInput === "shena@example.com" && passwordInput === "password";
-
-          // Check registered accounts in localStorage
-          const existingAccounts = JSON.parse(localStorage.getItem("shena_seller_accounts") || "[]");
-          const foundAccount = existingAccounts.find(
-            (acc: any) => acc.email.toLowerCase().trim() === emailInput && acc.password === passwordInput
-          );
-
-          if (isMockUser || foundAccount) {
-            // Set session flags
-            localStorage.setItem("shena_seller_logged_in", "true");
-
-            const currentSeller = isMockUser
-              ? {
-                  name: "Shena",
-                  email: "shena@example.com",
-                  phone: "+91 98765 43210",
-                  category: "Salon",
-                }
-              : {
-                  name: foundAccount.name,
-                  email: foundAccount.email,
-                  phone: foundAccount.phone,
-                  category: foundAccount.category,
-                };
-
-            localStorage.setItem("shena_current_seller", JSON.stringify(currentSeller));
-
-            // If it's the mock user, we also pre-set their salon as registered to not interrupt their initial dashboard view
-            if (isMockUser) {
-              localStorage.setItem("shena_seller_salon_registered", "true");
-            }
-
-            router.push("/seller");
-          } else {
-            setError("Invalid email address or password. Please try again.");
+      let authData: any;
+      try {
+        // Attempt backend login
+        authData = await apiRequest("/auth/login", {
+          method: "POST",
+          bodyData: { email: emailInput, password: passwordInput }
+        });
+      } catch (loginErr: any) {
+        // If it's the mock user and not registered, auto-register them
+        if (emailInput === "shena@example.com" && passwordInput === "password") {
+          try {
+            await apiRequest("/auth/register", {
+              method: "POST",
+              bodyData: { name: "Shena", email: emailInput, password: passwordInput, role: "SELLER" }
+            });
+            // Try login again
+            authData = await apiRequest("/auth/login", {
+              method: "POST",
+              bodyData: { email: emailInput, password: passwordInput }
+            });
+          } catch (regErr: any) {
+            throw new Error(`Auto-registration failed: ${regErr.message}`);
           }
-        } catch (e) {
-          console.error(e);
-          setError("An error occurred during sign in. Please try again.");
+        } else {
+          throw loginErr;
         }
       }
+
+      if (authData && authData.data) {
+        const { user, tokens } = authData.data;
+        localStorage.setItem("shena_seller_logged_in", "true");
+        localStorage.setItem("shena_seller_token", tokens.accessToken);
+        localStorage.setItem("shena_current_seller", JSON.stringify({
+          name: user.name,
+          email: user.email,
+          phone: "+91 98765 43210",
+          category: "Salon",
+        }));
+
+        // Fetch their shop profile from the backend
+        try {
+          const profileData = await apiRequest("/sellers/me", {
+            method: "GET"
+          });
+
+          if (profileData && profileData.data) {
+            localStorage.setItem("shena_seller_salon_details", JSON.stringify(profileData.data));
+            localStorage.setItem("shena_seller_salon_registered", "true");
+          } else {
+            localStorage.setItem("shena_seller_salon_registered", "false");
+          }
+        } catch (profileErr) {
+          console.warn("Could not fetch seller profile:", profileErr);
+          localStorage.setItem("shena_seller_salon_registered", "false");
+        }
+
+        router.push("/seller");
+      }
+    } catch (e: any) {
+      console.error(e);
+      setError(e.message || "Invalid email address or password. Please try again.");
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (

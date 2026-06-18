@@ -12,6 +12,7 @@ export interface ProductPayload {
   price: number;
   stock: number;
   images: ProductImage[];
+  image?: string;
   ratings?: number;
   isActive?: boolean;
   size?: string;

@@ -24,6 +24,7 @@ const productSchema = new Schema<ProductDocument>(
     price: { type: Number, required: true },
     stock: { type: Number, required: true, default: 0 },
     images: { type: [productImageSchema], default: [] },
+    image: String,
     ratings: { type: Number, default: 0 },
     isActive: { type: Boolean, default: true },
     size: { type: String, required: false },

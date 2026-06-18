@@ -1,8 +1,12 @@
 import { ApiError } from '../../utils/ApiError';
 import { ServiceModel } from './service.model';
+import { uploadToCloudinary } from '../../utils/uploadToCloudinary';
 
 export const serviceService = {
   async create(payload: Record<string, unknown>) {
+    if (payload.image && typeof payload.image === 'string' && payload.image.startsWith('data:image')) {
+      payload.image = await uploadToCloudinary(payload.image, 'services');
+    }
     return ServiceModel.create(payload);
   },
 
@@ -11,6 +15,9 @@ export const serviceService = {
   },
 
   async update(serviceId: string, payload: Record<string, unknown>) {
+    if (payload.image && typeof payload.image === 'string' && payload.image.startsWith('data:image')) {
+      payload.image = await uploadToCloudinary(payload.image, 'services');
+    }
     const service = await ServiceModel.findByIdAndUpdate(serviceId, payload, { new: true });
     if (!service) {
       throw new ApiError(404, 'Service not found');

@@ -2,7 +2,8 @@
 
 import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { apiRequest } from "@/lib/api";
 
 interface ServiceData {
   id: string;
@@ -72,6 +73,15 @@ interface OrderData {
 
 export function SellerPortal() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Read ?tab= query param to auto-switch tabs (used by Back to Catalog links)
+  useEffect(() => {
+    const tabParam = searchParams?.get("tab");
+    if (tabParam && ["dashboard", "bookings", "products", "orders", "earnings", "settings", "profile", "services"].includes(tabParam)) {
+      setActiveTab(tabParam as any);
+    }
+  }, [searchParams]);
 
   // ----------------------------------------------------
   // Auth & Onboarding State
@@ -644,35 +654,11 @@ export function SellerPortal() {
   };
 
   const handleEditProductClick = (item: ProductData) => {
-    setEditingProduct(item);
-    setNewProduct({
-      name: item.name,
-      brand: item.brand,
-      category: item.category,
-      subCategory: item.subCategory || "",
-      productType: item.productType || "",
-      price: String(item.price),
-      mrp: item.mrp ? String(item.mrp) : "",
-      discount: item.discount || 0,
-      stock: String(item.stock),
-      status: item.status || "Active",
-      image: item.image,
-      gallery: item.gallery || [],
-      description: item.description,
-      fullDescription: item.fullDescription || "",
-      skinType: item.skinType || "All",
-      hairType: item.hairType || "All",
-      tags: item.tags || [],
-      weight: item.weight || "",
-      shippingCharge: item.shippingCharge ? String(item.shippingCharge) : "",
-      metaTitle: item.metaTitle || "",
-      metaDescription: item.metaDescription || "",
-      size: item.size || "",
-      ingredients: item.ingredients || "",
-      howToUse: item.howToUse || "",
-    });
-    setProductFormStep(1);
-    setShowAddProductModal(true);
+    // Store product in localStorage for the edit page to pick up
+    if (typeof window !== "undefined") {
+      localStorage.setItem("shena_editing_product", JSON.stringify(item));
+    }
+    router.push(`/seller/products/edit/${item.id}`);
   };
 
   const handleAddBookingSubmit = (e: React.FormEvent) => {
@@ -1801,7 +1787,7 @@ export function SellerPortal() {
                 <p className="text-xs text-outline font-medium mt-0.5">Manage products offered in your retail store.</p>
               </div>
               <button
-                onClick={() => setShowAddProductModal(true)}
+                onClick={() => router.push("/seller/products/add")}
                 className="bg-primary hover:opacity-90 text-white rounded-xl px-4 py-2.5 text-xs font-black transition-all cursor-pointer shadow-sm flex items-center gap-1.5"
               >
                 <span className="material-symbols-outlined text-sm font-bold select-none">add</span>
