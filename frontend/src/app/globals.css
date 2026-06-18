@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f9f9ff;
+  --foreground: #151c27;
+  --surface: #f9f9ff;
+  --on-surface: #151c27;
+  --on-surface-variant: #4a4455;
+  --primary: #630ed4;
+  --on-primary: #ffffff;
+  --secondary: #b4136d;
+  --outline-variant: #ccc3d8;
+  --outline: #7b7487;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-secondary: var(--secondary);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --font-sans: var(--font-inter);
+
+  /* Specific premium palette colors mapped from reference config */
+  --color-surface-bright: #f9f9ff;
+  --color-surface-dim: #d3daea;
+  --color-surface-container: #e7eefe;
+  --color-surface-container-low: #f0f3ff;
+  --color-surface-container-lowest: #ffffff;
+  --color-surface-variant: #dce2f3;
+  --color-secondary-fixed: #ffd9e4;
+  --color-secondary-fixed-dim: #ffb0cd;
+  --color-secondary-container: #fd56a7;
+  --color-on-secondary-fixed-variant: #8c0053;
+  --color-on-secondary-fixed: #3e0022;
+  --color-primary-fixed: #eaddff;
+  --color-primary-fixed-dim: #d2bbff;
+  --color-primary-container: #7c3aed;
+  --color-on-primary-container: #ede0ff;
+  --color-on-primary-fixed-variant: #5a00c6;
+  --color-on-primary-fixed: #25005a;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
+  min-height: 100vh;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+/* Custom Utilities from Mockup */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
