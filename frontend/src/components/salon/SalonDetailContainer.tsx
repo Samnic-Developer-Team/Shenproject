@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -14,9 +14,10 @@ import { SalonGallery } from "./SalonGallery";
 import { SalonLocation } from "./SalonLocation";
 import { SalonVibes } from "./SalonVibes";
 import { BookingSidebar } from "@/components/booking/BookingSidebar";
-import { services } from "@/data/services";
+import { listServices } from "@/services/service.service";
 import type { Salon } from "@/types/salon.types";
 import type { Service } from "@/types/service.types";
+
 
 interface SalonDetailContainerProps {
   salon: Salon;
@@ -31,6 +32,30 @@ export function SalonDetailContainer({ salon }: SalonDetailContainerProps) {
     return today.toISOString().split("T")[0];
   });
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("02:30 PM");
+
+  const [servicesList, setServicesList] = useState<Service[]>([]);
+  const [isLoadingServices, setIsLoadingServices] = useState(true);
+
+  useEffect(() => {
+    listServices({ sellerId: salon.slug })
+      .then((apiServices) => {
+        const normalized = apiServices.map((s) => ({
+          slug: s._id,
+          label: s.title || (s as any).label || s.category,
+          icon: "spa",
+          description: s.description,
+          price: s.price,
+          duration: typeof s.duration === "number" ? `${s.duration} mins` : s.duration,
+          rating: 4.8,
+          category: s.category?.toLowerCase() || "wellness",
+          image: s.image,
+        }));
+        setServicesList(normalized);
+      })
+      .catch(console.error)
+      .finally(() => setIsLoadingServices(false));
+  }, [salon.slug]);
+
 
   const handleToggleService = (service: Service) => {
     setSelectedServices((prev) => {
@@ -76,11 +101,19 @@ export function SalonDetailContainer({ salon }: SalonDetailContainerProps) {
               {/* Dynamic Tab Panel */}
               <div className="mt-6">
                 {activeTab === "services" && (
-                  <SalonServiceList
-                    services={services}
-                    selectedServices={selectedServices}
-                    onToggleService={handleToggleService}
-                  />
+                  isLoadingServices ? (
+                    <div className="space-y-4">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="h-28 bg-surface-container-low rounded-3xl animate-pulse" />
+                      ))}
+                    </div>
+                  ) : (
+                    <SalonServiceList
+                      services={servicesList}
+                      selectedServices={selectedServices}
+                      onToggleService={handleToggleService}
+                    />
+                  )
                 )}
                 {activeTab === "products" && (
                   <div className="bg-surface-container-lowest p-8 rounded-2xl border border-outline-variant/10 shadow-sm text-center py-12 select-none">
@@ -95,7 +128,7 @@ export function SalonDetailContainer({ salon }: SalonDetailContainerProps) {
                     </p>
                   </div>
                 )}
-                {activeTab === "reviews" && <SalonReviews />}
+                {activeTab === "reviews" && <SalonReviews targetId={salon.slug} type="SALON" />}
                 {activeTab === "about" && (
                   <div className="space-y-8">
                     <SalonInfo salon={salon} />

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/common/Container";
+import { useAuthStore } from "@/store/authStore";
 
 interface CartItemData {
   id: string;
@@ -166,6 +167,12 @@ export function CartFlow() {
 
   const handleCheckoutRedirect = () => {
     if (cartItems.length === 0) return;
+    const loggedIn = localStorage.getItem("shena_user_logged_in") === "true";
+    if (!loggedIn) {
+      alert("Please log in to complete your checkout.");
+      router.push(`/login?redirect=${encodeURIComponent("/checkout")}`);
+      return;
+    }
     router.push("/checkout");
   };
 

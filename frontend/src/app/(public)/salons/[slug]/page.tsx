@@ -1,16 +1,23 @@
 import { notFound } from "next/navigation";
-import { salons } from "@/data/salons";
+import { getSalonById } from "@/services/salon.service";
 import { SalonDetailContainer } from "@/components/salon/SalonDetailContainer";
-
-export function generateStaticParams() {
-  return salons.map((salon) => ({ slug: salon.slug }));
-}
 
 export default async function Page({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const salon = salons.find((item) => item.slug === slug);
+  const seller = await getSalonById(slug);
 
-  if (!salon) notFound();
+  if (!seller) notFound();
+
+  const salon = {
+    slug: seller._id,
+    name: seller.salonName,
+    rating: "4.8",
+    distance: `${seller.city}, ${seller.state}`,
+    price: "₹₹₹",
+    description: seller.bio || "",
+    location: `${seller.city}, ${seller.state}`,
+    image: seller.shopImage,
+  };
 
   return <SalonDetailContainer salon={salon} />;
 }

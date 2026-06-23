@@ -7,6 +7,18 @@ import { ApiError } from '../../utils/ApiError';
 import { uploadToCloudinary } from '../../utils/uploadToCloudinary';
 
 export const sellerController = {
+  listAll: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const sellers = await SellerModel.find({ isActive: true })
+        .select('-password')
+        .sort({ createdAt: -1 })
+        .lean();
+      sendResponse({ res, message: 'Sellers fetched', data: sellers });
+    } catch (error) {
+      next(error);
+    }
+  },
+
   create: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const seller = await sellerService.create(req.body);
@@ -89,6 +101,18 @@ export const sellerController = {
         throw new ApiError(404, 'Seller profile not found');
       }
       sendResponse({ res, message: 'Seller profile updated', data: seller });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  getById: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const seller = await SellerModel.findById(String(req.params.id)).select('-password').lean();
+      if (!seller) {
+        throw new ApiError(404, 'Seller profile not found');
+      }
+      sendResponse({ res, message: 'Seller profile fetched', data: seller });
     } catch (error) {
       next(error);
     }

@@ -3,13 +3,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { apiRequest } from "@/lib/api";
 
 export function SellerRegister() {
   const router = useRouter();
 
-  // ----------------------------------------------------
-  // Form states
-  // ----------------------------------------------------
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -22,14 +20,10 @@ export function SellerRegister() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // ----------------------------------------------------
-  // Submit Handler
-  // ----------------------------------------------------
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
-    // Validations
     if (!formData.name || !formData.email || !formData.phone || !formData.password) {
       setError("Please fill in all required fields.");
       return;
@@ -47,62 +41,43 @@ export function SellerRegister() {
 
     setIsSubmitting(true);
 
-    // Simulate saving account details to localStorage
-    setTimeout(() => {
-      if (typeof window !== "undefined") {
-        try {
-          const existingAccounts = JSON.parse(localStorage.getItem("shena_seller_accounts") || "[]");
-          
-          // Check if email already registered
-          const emailExists = existingAccounts.some((acc: any) => acc.email.toLowerCase() === formData.email.toLowerCase());
-          if (emailExists) {
-            setError("This email address is already registered.");
-            setIsSubmitting(false);
-            return;
-          }
+    try {
+      await apiRequest("/auth/register", {
+        method: "POST",
+        bodyData: {
+          name: formData.name,
+          email: formData.email.toLowerCase().trim(),
+          password: formData.password,
+          role: "SELLER",
+          phone: formData.phone,
+          category: formData.category,
+        },
+      });
 
-          const newAccount = {
-            id: `acc-${Date.now()}`,
-            name: formData.name,
-            email: formData.email,
-            phone: formData.phone,
-            category: formData.category,
-            password: formData.password,
-          };
-
-          existingAccounts.push(newAccount);
-          localStorage.setItem("shena_seller_accounts", JSON.stringify(existingAccounts));
-
-          alert("Seller account created successfully! Please log in.");
-          router.push("/seller/login");
-        } catch (e) {
-          console.error(e);
-          setError("Failed to create account. Please try again.");
-        }
-      }
+      alert("Seller account created successfully! Please log in.");
+      router.push("/seller/login");
+    } catch (err: any) {
+      setError(err.message || "Failed to create account. Please try again.");
+    } finally {
       setIsSubmitting(false);
-    }, 1000);
+    }
   };
 
   return (
     <div className="bg-[#f6f8fd] text-[#151c27] min-h-screen flex items-center justify-center font-sans antialiased p-4">
       
-      {/* Container Box */}
       <div className="max-w-4xl w-full bg-white border border-outline-variant/10 rounded-[36px] shadow-[0px_24px_56px_rgba(21,28,39,0.03)] grid grid-cols-1 md:grid-cols-12 overflow-hidden min-h-[600px]">
         
-        {/* LEFT COLUMN: BRAND MARKETING (5 cols) */}
+        {/* LEFT COLUMN: BRAND MARKETING */}
         <div className="md:col-span-5 bg-gradient-to-br from-violet-700 to-[#5a00c6] p-8 text-white flex flex-col justify-between relative overflow-hidden">
           
-          {/* Decorative Glow */}
           <div className="absolute -top-12 -left-12 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-fuchsia-500/10 rounded-full blur-3xl pointer-events-none" />
 
-          {/* Logo */}
           <Link href="/" className="text-xl font-bold tracking-tight text-white select-none">
             Shena Seller
           </Link>
 
-          {/* Marketing text */}
           <div className="space-y-6 my-8 md:my-0 select-none">
             <h2 className="text-2xl sm:text-3xl font-black leading-tight tracking-tight">
               Grow Your Beauty Studio
@@ -111,7 +86,6 @@ export function SellerRegister() {
               Join 10,000+ beauty salons, luxury spas, and independent artist partners growing their monthly bookings by 40% using Shena.
             </p>
             
-            {/* Features ledger */}
             <div className="space-y-3.5 pt-4 text-xs font-semibold text-white/90">
               <div className="flex items-start gap-2">
                 <span className="material-symbols-outlined text-sm font-bold text-fuchsia-300">check_circle</span>
@@ -128,14 +102,12 @@ export function SellerRegister() {
             </div>
           </div>
 
-          {/* Copyright copyright */}
           <p className="text-[9px] text-white/60 font-medium select-none">
             © 2024 Shena Atelier • Bangalore • Delhi
           </p>
-
         </div>
 
-        {/* RIGHT COLUMN: REGISTRATION FORM (7 cols) */}
+        {/* RIGHT COLUMN: REGISTRATION FORM */}
         <form onSubmit={handleSubmit} className="md:col-span-7 p-8 sm:p-10 flex flex-col justify-center space-y-6">
           
           <div className="space-y-1.5 select-none">
@@ -147,17 +119,14 @@ export function SellerRegister() {
             </p>
           </div>
 
-          {/* Form inputs */}
           <div className="space-y-4">
             
-            {/* Error display */}
             {error && (
               <div className="bg-rose-50 border border-rose-100 text-rose-700 text-xs font-bold rounded-2xl px-4 py-2.5 animate-in slide-in-from-top-2 duration-300">
                 {error}
               </div>
             )}
 
-            {/* Input: Name */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-wider text-outline block">Full Name</label>
               <input
@@ -170,7 +139,6 @@ export function SellerRegister() {
               />
             </div>
 
-            {/* Row: Email and Phone */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-wider text-outline block">Email Address</label>
@@ -196,7 +164,6 @@ export function SellerRegister() {
               </div>
             </div>
 
-            {/* Input: Category */}
             <div className="space-y-1.5">
               <label className="text-[10px] font-black uppercase tracking-wider text-outline block">Salon / Business Type</label>
               <select
@@ -211,7 +178,6 @@ export function SellerRegister() {
               </select>
             </div>
 
-            {/* Row: Password and Confirm Password */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <label className="text-[10px] font-black uppercase tracking-wider text-outline block">Password</label>
@@ -236,10 +202,8 @@ export function SellerRegister() {
                 />
               </div>
             </div>
-
           </div>
 
-          {/* Actions */}
           <div className="space-y-4 pt-2">
             <button
               type="submit"
@@ -263,11 +227,8 @@ export function SellerRegister() {
               </Link>
             </p>
           </div>
-
         </form>
-
       </div>
-
     </div>
   );
 }

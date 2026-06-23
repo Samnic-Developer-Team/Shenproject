@@ -48,4 +48,24 @@ export const orderController = {
       next(error);
     }
   },
+
+  getUserOrders: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = (req as any).user?.userId as string | undefined;
+      const orders = await orderService.findAll({ userId });
+      sendResponse({ res, message: 'User orders fetched', data: orders });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  getSellerOrders: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const sellerId = (req as any).user?.userId as string | undefined;
+      const orders = await orderService.findAll({ sellerId });
+      sendResponse({ res, message: 'Seller orders fetched', data: orders });
+    } catch (error) {
+      next(error);
+    }
+  },
 };

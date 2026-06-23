@@ -18,7 +18,7 @@ export function HeroSection() {
       <div className="absolute inset-0 z-0 select-none">
         <img 
           alt="Luxury spa interior" 
-          src="https://lh3.googleusercontent.com/aida-public/AB6AXuDISfM-E_l-JVMTf9iyP3omLFCyyBnc2RZOzNbzW_2VSyrE9cZAxlv_PyvsC2FWiUesc7BKu3rzOW3rAW97b4f78mdhotr66tw3gKsDQpb2B4C4r7Mek_9wYX9QZSuNRL-_Plhi8rPRgAUPQo-J4aBaboXRi2Bc-vElXkD7djt-S3sBzb52Ww_kv_EjORfu_7b039kNRzc09pc3O8_5dUK4GY3Ga8LBRXxowNpvo6NZ3Oaz_MZSYi5gXs9CbHp6tjlbo3CPwX8ISA"
+          src="/hero-salon.png"
           className="w-full h-full object-cover"
         />
         {/* Responsive gradient overlay to guarantee readability of light elements */}

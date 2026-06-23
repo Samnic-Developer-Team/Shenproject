@@ -7,6 +7,8 @@ import { orderSchema } from './order.validation';
 
 const router = Router();
 
+router.get('/user', authMiddleware, roleGuard.user, orderController.getUserOrders);
+router.get('/seller', authMiddleware, roleGuard.seller, orderController.getSellerOrders);
 router.get('/', authMiddleware, roleGuard.admin, orderController.findAll);
 router.post('/', authMiddleware, roleGuard.user, validateRequest(orderSchema), orderController.create);
 router.get('/:id', authMiddleware, orderController.getById);

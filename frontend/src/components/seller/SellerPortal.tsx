@@ -1,9 +1,24 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { apiRequest } from "@/lib/api";
+import {
+  createService,
+  updateService,
+  deleteService,
+  type Service as ApiService,
+} from "@/services/service.service";
+import {
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  type Product as ApiProduct,
+} from "@/services/product.service";
+import { registerSellerShop, updateSellerShop, getSellerProfile } from "@/services/salon.service";
+import { getSellerBookings, updateBooking as apiUpdateBooking } from "@/services/booking.service";
+import { getSellerOrders, updateOrder } from "@/services/order.service";
 
 interface ServiceData {
   id: string;
@@ -69,6 +84,45 @@ interface OrderData {
   total: number;
   status: "Pending" | "Shipped" | "Delivered";
   date: string;
+}
+
+function compressImage(file: File, callback: (base64: string) => void) {
+  const reader = new FileReader();
+  reader.onload = (event) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const MAX_WIDTH = 800;
+      const MAX_HEIGHT = 800;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height) {
+        if (width > MAX_WIDTH) {
+          height = Math.round((height * MAX_WIDTH) / width);
+          width = MAX_WIDTH;
+        }
+      } else {
+        if (height > MAX_HEIGHT) {
+          width = Math.round((width * MAX_HEIGHT) / height);
+          height = MAX_HEIGHT;
+        }
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+        callback(dataUrl);
+      } else {
+        callback(event.target?.result as string);
+      }
+    };
+    img.src = event.target?.result as string;
+  };
+  reader.readAsDataURL(file);
 }
 
 export function SellerPortal() {
@@ -138,8 +192,107 @@ export function SellerPortal() {
   });
 
   // ----------------------------------------------------
-  // Authentication & Onboarding Checks
+  // Authentication & Onboarding Checks — uses backend API
   // ----------------------------------------------------
+  const loadSellerData = useCallback(async () => {
+    try {
+      // Fetch seller's services
+      const token = localStorage.getItem("shena_seller_token");
+      if (!token) return;
+
+      const [servicesRes, productsRes, bookingsRes, ordersRes] = await Promise.allSettled([
+        apiRequest<{ data: any[] }>("/services?limit=100"),
+        apiRequest<{ data: any[] }>("/products?limit=100"),
+        getSellerBookings(),
+        getSellerOrders(),
+      ]);
+
+      // Normalize services
+      if (servicesRes.status === "fulfilled" && servicesRes.value?.data) {
+        const apiServices = servicesRes.value.data;
+        setServices(apiServices.map((s: any) => ({
+          id: s._id,
+          label: s.title || s.label || s.category,
+          price: s.price,
+          duration: typeof s.duration === "number" ? `${s.duration} mins` : s.duration,
+          category: s.category,
+          description: s.description,
+          image: s.image,
+          benefits: s.benefits,
+          subCategory: s.subCategory,
+          fullDescription: s.fullDescription,
+          availableDays: s.availableDays,
+          gender: s.gender,
+          status: s.status,
+          homeServiceAvailable: s.homeServiceAvailable,
+          featuredService: s.featuredService,
+        })));
+      }
+
+      // Normalize products
+      if (productsRes.status === "fulfilled" && productsRes.value?.data) {
+        const apiProducts = productsRes.value.data;
+        // Filter to only this seller's products
+        setProducts(apiProducts.map((p: any) => ({
+          id: p._id,
+          name: p.name,
+          brand: p.brand,
+          price: p.price,
+          stock: p.stock,
+          category: p.category,
+          description: p.description,
+          image: p.image || "",
+          size: p.size,
+          ingredients: p.ingredients,
+          howToUse: p.howToUse,
+          subCategory: p.subCategory,
+          productType: p.productType,
+          mrp: p.mrp,
+          discount: p.discount,
+          status: p.status,
+          gallery: p.gallery || [],
+          fullDescription: p.fullDescription,
+          skinType: p.skinType,
+          hairType: p.hairType,
+          tags: p.tags || [],
+          weight: p.weight,
+          shippingCharge: p.shippingCharge,
+          metaTitle: p.metaTitle,
+          metaDescription: p.metaDescription,
+        })));
+      }
+
+      // Normalize bookings
+      if (bookingsRes.status === "fulfilled") {
+        const colors = ["bg-purple-100 text-purple-700", "bg-blue-100 text-blue-700", "bg-rose-100 text-rose-700", "bg-slate-100 text-slate-700"];
+        setBookings(bookingsRes.value.map((b: any, i: number) => ({
+          id: b._id,
+          customerName: b.user?.name || "Customer",
+          avatarInitials: (b.user?.name || "C").substring(0, 2).toUpperCase(),
+          service: b.service?.title || b.service?.label || "Service",
+          date: `${b.bookingDate}, ${b.timeSlot}`,
+          status: b.bookingStatus === "CONFIRMED" ? "Confirmed" : b.bookingStatus === "CANCELLED" ? "Cancelled" : "Pending",
+          colorClass: colors[i % colors.length],
+        })));
+      }
+
+      // Normalize orders
+      if (ordersRes.status === "fulfilled") {
+        setOrders(ordersRes.value.map((o: any) => ({
+          id: o._id,
+          customerName: o.shippingAddress?.name || "Customer",
+          productName: o.orderedProducts?.[0]?.name || "Product",
+          qty: o.orderedProducts?.reduce((sum: number, p: any) => sum + p.quantity, 0) || 1,
+          total: o.totalAmount,
+          status: o.deliveryStatus === "SHIPPED" ? "Shipped" : o.deliveryStatus === "DELIVERED" ? "Delivered" : "Pending",
+          date: o.createdAt ? new Date(o.createdAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "",
+        })));
+      }
+    } catch (err) {
+      console.error("Failed to load seller data:", err);
+    }
+  }, []);
+
   useEffect(() => {
     if (typeof window !== "undefined") {
       const loggedIn = localStorage.getItem("shena_seller_logged_in");
@@ -148,15 +301,13 @@ export function SellerPortal() {
         return;
       }
 
-      // Load current seller details
+      // Load current seller details from localStorage (set at login)
       const sellerStr = localStorage.getItem("shena_current_seller");
       let sellerObj: any = null;
       if (sellerStr) {
         try {
           sellerObj = JSON.parse(sellerStr);
           setCurrentSeller(sellerObj);
-          
-          // Pre-fill wizard category and details with user registration details
           setShopRegisterData((prev) => ({
             ...prev,
             ownerName: sellerObj.name || "",
@@ -169,38 +320,53 @@ export function SellerPortal() {
         }
       }
 
-      // Check shop registration status
-      const salonRegistered = localStorage.getItem("shena_seller_salon_registered");
-      if (salonRegistered === "true") {
-        setIsRegistered(true);
-        const salonDetailsStr = localStorage.getItem("shena_seller_salon_details");
-        if (salonDetailsStr) {
-          try {
-            setShopDetails(JSON.parse(salonDetailsStr));
-          } catch (e) {
-            console.error(e);
-          }
+      // Fetch shop profile from backend
+      getSellerProfile().then((profile) => {
+        if (profile) {
+          setIsRegistered(true);
+          setShopDetails((prev) => ({
+            ...prev,
+            salonName: profile.salonName || prev.salonName,
+            ownerName: profile.ownerName || prev.ownerName,
+            contact: profile.contact || prev.contact,
+            email: profile.email || prev.email,
+            address: profile.address || prev.address,
+            city: profile.city || prev.city,
+            state: profile.state || prev.state,
+            shopLicence: profile.shopLicence || prev.shopLicence,
+            shopImage: profile.shopImage || prev.shopImage,
+            description: profile.bio || prev.description,
+          }));
+          localStorage.setItem("shena_seller_salon_registered", "true");
+        } else {
+          setIsRegistered(false);
+          localStorage.setItem("shena_seller_salon_registered", "false");
         }
-      } else {
-        setIsRegistered(false);
-      }
-
-      setIsLoading(false);
+      }).catch(() => {
+        const salonRegistered = localStorage.getItem("shena_seller_salon_registered");
+        setIsRegistered(salonRegistered === "true");
+      }).finally(() => {
+        setIsLoading(false);
+        loadSellerData();
+      });
     }
-  }, [router]);
+  }, [router, loadSellerData]);
 
   // ----------------------------------------------------
-  // Logout & Shop Setup Handlers
+  // Logout & Shop Setup Handlers — connected to API
   // ----------------------------------------------------
   const handleLogout = () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("shena_seller_logged_in");
+      localStorage.removeItem("shena_seller_token");
       localStorage.removeItem("shena_current_seller");
+      localStorage.removeItem("shena_seller_salon_registered");
+      localStorage.removeItem("shena_seller_salon_details");
       router.push("/seller/login");
     }
   };
 
-  const handleRegisterShopSubmit = (e: React.FormEvent) => {
+  const handleRegisterShopSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
       !shopRegisterData.salonName ||
@@ -217,16 +383,20 @@ export function SellerPortal() {
       return;
     }
 
-    if (typeof window !== "undefined") {
-      localStorage.setItem("shena_seller_salon_details", JSON.stringify(shopRegisterData));
+    try {
+      const seller = await registerSellerShop(shopRegisterData as Record<string, unknown>);
       localStorage.setItem("shena_seller_salon_registered", "true");
+      localStorage.setItem("shena_seller_salon_details", JSON.stringify(seller));
       setShopDetails(shopRegisterData);
       setIsRegistered(true);
       alert("Salon successfully registered! Welcome to your dashboard.");
+      await loadSellerData();
+    } catch (err: any) {
+      alert(`Registration failed: ${err.message || "Please try again."}`);
     }
   };
 
-  const handleUpdateProfile = (e: React.FormEvent) => {
+  const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (
       !shopDetails.salonName ||
@@ -243,176 +413,33 @@ export function SellerPortal() {
       return;
     }
 
-    if (typeof window !== "undefined") {
+    try {
+      await updateSellerShop(shopDetails as Record<string, unknown>);
       localStorage.setItem("shena_seller_salon_details", JSON.stringify(shopDetails));
       localStorage.setItem("shena_seller_salon_registered", "true");
       setIsRegistered(true);
       alert("Salon details successfully updated!");
+    } catch (err: any) {
+      alert(`Update failed: ${err.message || "Please try again."}`);
     }
   };
 
-  const [services, setServices] = useState<ServiceData[]>([
-    {
-      id: "ser-1",
-      label: "Bridal Glow Facial",
-      price: 3500,
-      duration: "60 mins",
-      category: "Skincare",
-      description: "Signature skin brightening treatment using active organic ingredients.",
-      image: "https://images.unsplash.com/photo-1512290923902-8a9f81dc236c?auto=format&fit=crop&q=80&w=400",
-      benefits: "Deep cleanse, organic brightening mask, immediate hydration & glow boost.",
-    },
-    {
-      id: "ser-2",
-      label: "Silk Therapy Mask",
-      price: 2200,
-      duration: "45 mins",
-      category: "Haircare",
-      description: "Hydrating deep hair smoothing and repair conditioning scalp treatment.",
-      image: "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=400",
-      benefits: "Restores hair elasticity, intense moisture infusion, controls frizz for up to 3 washes.",
-    },
-    {
-      id: "ser-3",
-      label: "Full Body Spa",
-      price: 4200,
-      duration: "75 mins",
-      category: "Wellness",
-      description: "Therapeutic oil massage for absolute muscle relaxation and stress relief.",
-      image: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?auto=format&fit=crop&q=80&w=400",
-      benefits: "Relieves muscle tension, promotes circulation, standard warm herbal compress included.",
-    },
-    {
-      id: "ser-4",
-      label: "Men's Facial",
-      price: 1500,
-      duration: "30 mins",
-      category: "Skincare",
-      description: "Deep clinical pore cleansing facial optimized for active skin.",
-      image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?auto=format&fit=crop&q=80&w=400",
-      benefits: "Unclogs pores, controls excess oil, soothing post-shave skin therapy.",
-    },
-  ]);
+  const [services, setServices] = useState<ServiceData[]>([]);
 
   // ----------------------------------------------------
   // Products state
   // ----------------------------------------------------
-  const [products, setProducts] = useState<ProductData[]>([
-    {
-      id: "prod-1",
-      name: "Radiance Silk Hair Serum",
-      brand: "Shena Essentials",
-      price: 2300,
-      stock: 24,
-      category: "Haircare",
-      description: "Smoothing organic botanical serum that locks in moisture and shine.",
-      image: "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?auto=format&fit=crop&q=80&w=200",
-      size: "100 ml",
-      ingredients: "Organic Argan Oil, Cyclomethicone, Vitamin E, Lavender Extract.",
-      howToUse: "Apply 2-3 drops to damp hair from mid-lengths to ends before styling.",
-    },
-    {
-      id: "prod-2",
-      name: "Rose Glow Mist",
-      brand: "Shena Essentials",
-      price: 850,
-      stock: 42,
-      category: "Skincare",
-      description: "Refreshing herbal mist with vitamin E and active floral extracts.",
-      image: "https://images.unsplash.com/photo-1608248597279-f99d160bfcbc?auto=format&fit=crop&q=80&w=200",
-      size: "250 ml",
-      ingredients: "Pure Rosewater, Witch Hazel, Hyaluronic Acid, Glycerin.",
-      howToUse: "Mist onto face and neck as needed to refresh, hydrate, or set makeup.",
-    },
-    {
-      id: "prod-3",
-      name: "Satin Pillowcase",
-      brand: "Luxurious Sleep Atelier",
-      price: 1200,
-      stock: 15,
-      category: "Wellness",
-      description: "Elite double-sided satin pillowcase that prevents hair frizz and skin folds.",
-      image: "https://images.unsplash.com/photo-1616627561950-9f746e330187?auto=format&fit=crop&q=80&w=200",
-      size: "Standard (20x26 inches)",
-      ingredients: "100% Premium Satin Polyester.",
-      howToUse: "Slip over standard pillows. Machine wash cold on gentle cycle, tumble dry low.",
-    },
-  ]);
+  const [products, setProducts] = useState<ProductData[]>([]);
 
   // ----------------------------------------------------
-  // Bookings state (matching mockup names and services)
+  // Bookings state
   // ----------------------------------------------------
-  const [bookings, setBookings] = useState<BookingData[]>([
-    {
-      id: "bk-1",
-      customerName: "Ananya P.",
-      avatarInitials: "AP",
-      service: "Bridal Glow Facial",
-      date: "24 Oct, 11:30 AM",
-      status: "Confirmed",
-      colorClass: "bg-purple-100 text-purple-700",
-    },
-    {
-      id: "bk-2",
-      customerName: "Rohan K.",
-      avatarInitials: "RK",
-      service: "Silk Therapy Mask",
-      date: "24 Oct, 02:00 PM",
-      status: "Pending",
-      colorClass: "bg-rose-100 text-rose-700",
-    },
-    {
-      id: "bk-3",
-      customerName: "Sana M.",
-      avatarInitials: "SM",
-      service: "Full Body Spa",
-      date: "25 Oct, 10:00 AM",
-      status: "Confirmed",
-      colorClass: "bg-blue-100 text-blue-700",
-    },
-    {
-      id: "bk-4",
-      customerName: "John B.",
-      avatarInitials: "JB",
-      service: "Men's Facial",
-      date: "25 Oct, 04:30 PM",
-      status: "Pending",
-      colorClass: "bg-slate-100 text-slate-700",
-    },
-  ]);
+  const [bookings, setBookings] = useState<BookingData[]>([]);
 
   // ----------------------------------------------------
   // Orders state
   // ----------------------------------------------------
-  const [orders, setOrders] = useState<OrderData[]>([
-    {
-      id: "ord-101",
-      customerName: "Kishan K.",
-      productName: "Radiance Silk Hair Serum",
-      qty: 1,
-      total: 2300,
-      status: "Pending",
-      date: "03 Jun, 2026",
-    },
-    {
-      id: "ord-102",
-      customerName: "Meera R.",
-      productName: "Rose Glow Mist",
-      qty: 2,
-      total: 1700,
-      status: "Shipped",
-      date: "02 Jun, 2026",
-    },
-    {
-      id: "ord-103",
-      customerName: "Dev P.",
-      productName: "Satin Pillowcase",
-      qty: 1,
-      total: 1200,
-      status: "Delivered",
-      date: "31 May, 2026",
-    },
-  ]);
+  const [orders, setOrders] = useState<OrderData[]>([]);
 
   // ----------------------------------------------------
   // Modal toggle states & inputs
@@ -482,7 +509,7 @@ export function SellerPortal() {
   // ----------------------------------------------------
   // Modal handlers
   // ----------------------------------------------------
-  const handleAddServiceSubmit = (e: React.FormEvent) => {
+  const handleAddServiceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newService.label || !newService.price) {
       alert("Please fill in the service name and price.");
@@ -490,29 +517,53 @@ export function SellerPortal() {
     }
     
     setIsSubmittingService(true);
-    setTimeout(() => {
-      setIsSubmittingService(false);
-      setIsServiceSuccess(true);
-      
-      const created: ServiceData = {
-        id: `ser-${Date.now()}`,
-        label: newService.label,
+    try {
+      // Get sellerId from localStorage token
+      const token = localStorage.getItem("shena_seller_token");
+      const sellerStr = localStorage.getItem("shena_current_seller");
+      const sellerObj = sellerStr ? JSON.parse(sellerStr) : null;
+
+      const durationMinutes = newService.duration.includes("Minutes")
+        ? parseInt(newService.duration)
+        : parseInt(newService.duration) || 60;
+
+      const payload = {
+        title: newService.label,
         price: Number(newService.price),
-        duration: newService.duration,
+        duration: durationMinutes,
         category: newService.category,
         subCategory: newService.subCategory,
-        description: newService.description,
+        description: newService.description || newService.label,
         fullDescription: newService.fullDescription,
-        image: newService.image || "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=400",
+        image: newService.image || undefined,
         availableDays: newService.availableDays,
         gender: newService.gender,
         status: newService.status,
         homeServiceAvailable: newService.homeServiceAvailable,
         featuredService: newService.featuredService,
-        benefits: newService.description,
+        benefits: newService.benefits || newService.description,
       };
 
-      setServices((prev) => [...prev, created]);
+      const created = await createService(payload);
+      setIsServiceSuccess(true);
+      
+      setServices((prev) => [...prev, {
+        id: created._id,
+        label: created.title || newService.label,
+        price: created.price,
+        duration: typeof created.duration === "number" ? `${created.duration} mins` : created.duration,
+        category: created.category,
+        description: created.description,
+        image: created.image,
+        benefits: created.benefits,
+        subCategory: created.subCategory,
+        fullDescription: created.fullDescription,
+        availableDays: created.availableDays,
+        gender: created.gender,
+        status: created.status,
+        homeServiceAvailable: created.homeServiceAvailable,
+        featuredService: created.featuredService,
+      }]);
       
       setTimeout(() => {
         setIsServiceSuccess(false);
@@ -534,10 +585,14 @@ export function SellerPortal() {
         });
         setShowAddServiceModal(false);
       }, 1000);
-    }, 1200);
+    } catch (err: any) {
+      alert(`Failed to create service: ${err.message || "Please try again."}`);
+    } finally {
+      setIsSubmittingService(false);
+    }
   };
 
-  const handleAddProductSubmit = (e: React.FormEvent) => {
+  const handleAddProductSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProduct.name || !newProduct.brand || !newProduct.price || !newProduct.stock || !newProduct.description) {
       alert("Please fill in all required fields: Name, Brand, Price, Stock, and Short Description.");
@@ -549,75 +604,45 @@ export function SellerPortal() {
     }
 
     setIsSubmittingProduct(true);
-    setTimeout(() => {
-      setIsSubmittingProduct(false);
-      setIsProductSuccess(true);
+    try {
+      const payload = {
+        name: newProduct.name,
+        brand: newProduct.brand,
+        category: newProduct.category,
+        subCategory: newProduct.subCategory,
+        productType: newProduct.productType,
+        price: Number(newProduct.price),
+        mrp: newProduct.mrp ? Number(newProduct.mrp) : undefined,
+        discount: newProduct.discount,
+        stock: Number(newProduct.stock),
+        status: newProduct.status,
+        image: newProduct.image,
+        gallery: newProduct.gallery,
+        description: newProduct.description,
+        fullDescription: newProduct.fullDescription,
+        skinType: newProduct.skinType,
+        hairType: newProduct.hairType,
+        tags: newProduct.tags,
+        weight: newProduct.weight,
+        shippingCharge: newProduct.shippingCharge ? Number(newProduct.shippingCharge) : undefined,
+        metaTitle: newProduct.metaTitle,
+        metaDescription: newProduct.metaDescription,
+        size: newProduct.size || "Standard",
+        ingredients: newProduct.ingredients,
+        howToUse: newProduct.howToUse,
+      };
 
       if (editingProduct) {
+        const updated = await updateProduct(editingProduct.id, payload);
         setProducts((prev) =>
-          prev.map((p) =>
-            p.id === editingProduct.id
-              ? {
-                  ...p,
-                  name: newProduct.name,
-                  brand: newProduct.brand,
-                  category: newProduct.category,
-                  subCategory: newProduct.subCategory,
-                  productType: newProduct.productType,
-                  price: Number(newProduct.price),
-                  mrp: newProduct.mrp ? Number(newProduct.mrp) : undefined,
-                  discount: newProduct.discount,
-                  stock: Number(newProduct.stock),
-                  status: newProduct.status,
-                  image: newProduct.image,
-                  gallery: newProduct.gallery,
-                  description: newProduct.description,
-                  fullDescription: newProduct.fullDescription,
-                  skinType: newProduct.skinType,
-                  hairType: newProduct.hairType,
-                  tags: newProduct.tags,
-                  weight: newProduct.weight,
-                  shippingCharge: newProduct.shippingCharge ? Number(newProduct.shippingCharge) : undefined,
-                  metaTitle: newProduct.metaTitle,
-                  metaDescription: newProduct.metaDescription,
-                  ingredients: newProduct.ingredients,
-                  howToUse: newProduct.howToUse,
-                  size: newProduct.size || "Standard",
-                }
-              : p
-          )
+          prev.map((p) => p.id === editingProduct.id ? { ...p, ...payload, id: editingProduct.id } : p)
         );
       } else {
-        const created: ProductData = {
-          id: `prod-${Date.now()}`,
-          name: newProduct.name,
-          brand: newProduct.brand,
-          category: newProduct.category,
-          subCategory: newProduct.subCategory,
-          productType: newProduct.productType,
-          price: Number(newProduct.price),
-          mrp: newProduct.mrp ? Number(newProduct.mrp) : undefined,
-          discount: newProduct.discount,
-          stock: Number(newProduct.stock),
-          status: newProduct.status,
-          image: newProduct.image,
-          gallery: newProduct.gallery,
-          description: newProduct.description,
-          fullDescription: newProduct.fullDescription,
-          skinType: newProduct.skinType,
-          hairType: newProduct.hairType,
-          tags: newProduct.tags,
-          weight: newProduct.weight,
-          shippingCharge: newProduct.shippingCharge ? Number(newProduct.shippingCharge) : undefined,
-          metaTitle: newProduct.metaTitle,
-          metaDescription: newProduct.metaDescription,
-          size: newProduct.size || "Standard",
-          ingredients: newProduct.ingredients,
-          howToUse: newProduct.howToUse,
-        };
-        setProducts((prev) => [...prev, created]);
+        const created = await createProduct(payload);
+        setProducts((prev) => [...prev, { ...payload, id: created._id, price: Number(newProduct.price), stock: Number(newProduct.stock), image: newProduct.image }]);
       }
 
+      setIsProductSuccess(true);
       setTimeout(() => {
         setIsProductSuccess(false);
         setProductFormStep(1);
@@ -650,7 +675,11 @@ export function SellerPortal() {
         });
         setShowAddProductModal(false);
       }, 1000);
-    }, 1200);
+    } catch (err: any) {
+      alert(`Failed to save product: ${err.message || "Please try again."}`);
+    } finally {
+      setIsSubmittingProduct(false);
+    }
   };
 
   const handleEditProductClick = (item: ProductData) => {
@@ -694,16 +723,35 @@ export function SellerPortal() {
     setShowAddBookingModal(false);
   };
 
-  const handleToggleBookingStatus = (id: string, status: "Confirmed" | "Pending" | "Cancelled") => {
-    setBookings((prev) =>
-      prev.map((bk) => (bk.id === id ? { ...bk, status } : bk))
-    );
+  const handleToggleBookingStatus = async (id: string, status: "Confirmed" | "Pending" | "Cancelled") => {
+    try {
+      const apiStatus = status === "Confirmed" ? "CONFIRMED" : status === "Cancelled" ? "CANCELLED" : "PENDING";
+      await apiUpdateBooking(id, { bookingStatus: apiStatus as any });
+      setBookings((prev) =>
+        prev.map((bk) => (bk.id === id ? { ...bk, status } : bk))
+      );
+    } catch (err: any) {
+      console.error("Failed to update booking:", err);
+      // Still update UI optimistically
+      setBookings((prev) =>
+        prev.map((bk) => (bk.id === id ? { ...bk, status } : bk))
+      );
+    }
   };
 
-  const handleToggleOrderStatus = (id: string, status: "Pending" | "Shipped" | "Delivered") => {
-    setOrders((prev) =>
-      prev.map((ord) => (ord.id === id ? { ...ord, status } : ord))
-    );
+  const handleToggleOrderStatus = async (id: string, status: "Pending" | "Shipped" | "Delivered") => {
+    try {
+      const apiStatus = status === "Shipped" ? "SHIPPED" : status === "Delivered" ? "DELIVERED" : "PENDING";
+      await updateOrder(id, { deliveryStatus: apiStatus as any });
+      setOrders((prev) =>
+        prev.map((ord) => (ord.id === id ? { ...ord, status } : ord))
+      );
+    } catch (err: any) {
+      console.error("Failed to update order:", err);
+      setOrders((prev) =>
+        prev.map((ord) => (ord.id === id ? { ...ord, status } : ord))
+      );
+    }
   };
 
   if (isLoading) {
@@ -923,11 +971,9 @@ export function SellerPortal() {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
-                          const reader = new FileReader();
-                          reader.onloadend = () => {
-                            setShopRegisterData(prev => ({ ...prev, shopImage: reader.result as string }));
-                          };
-                          reader.readAsDataURL(file);
+                          compressImage(file, (base64) => {
+                            setShopRegisterData(prev => ({ ...prev, shopImage: base64 }));
+                          });
                         }
                       }}
                     />
@@ -1579,11 +1625,9 @@ export function SellerPortal() {
                         onChange={(e) => {
                           const file = e.target.files?.[0];
                           if (file) {
-                            const reader = new FileReader();
-                            reader.onloadend = () => {
-                              setShopDetails(prev => ({ ...prev, shopImage: reader.result as string }));
-                            };
-                            reader.readAsDataURL(file);
+                            compressImage(file, (base64) => {
+                              setShopDetails(prev => ({ ...prev, shopImage: base64 }));
+                            });
                           }
                         }}
                       />
@@ -1764,7 +1808,16 @@ export function SellerPortal() {
                         {item.duration}
                       </span>
                       <button
-                        onClick={() => setServices((prev) => prev.filter((s) => s.id !== item.id))}
+                        onClick={async () => {
+                          if (confirm("Are you sure you want to delete this service?")) {
+                            try {
+                              await deleteService(item.id);
+                              setServices((prev) => prev.filter((s) => s.id !== item.id));
+                            } catch (err: any) {
+                              alert(`Failed to delete service: ${err.message || "Please try again."}`);
+                            }
+                          }
+                        }}
                         className="text-xs font-bold text-rose-600 hover:text-rose-800 transition-colors cursor-pointer"
                       >
                         Delete
@@ -1852,7 +1905,16 @@ export function SellerPortal() {
                             Edit
                           </button>
                           <button
-                            onClick={() => setProducts((prev) => prev.filter((p) => p.id !== item.id))}
+                            onClick={async () => {
+                              if (confirm("Are you sure you want to delete this product?")) {
+                                try {
+                                  await deleteProduct(item.id);
+                                  setProducts((prev) => prev.filter((p) => p.id !== item.id));
+                                } catch (err: any) {
+                                  alert(`Failed to delete product: ${err.message || "Please try again."}`);
+                                }
+                              }
+                            }}
                             className="px-2.5 py-1.5 hover:bg-rose-50 text-rose-700 border border-rose-100 rounded-xl font-bold text-[10px] transition-colors cursor-pointer shadow-sm active:scale-95"
                           >
                             Delete

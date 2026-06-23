@@ -3,14 +3,17 @@
 import { useState, useEffect, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { services as allServices } from "@/data/services";
-import { salons as allSalons } from "@/data/salons";
+import { getSalonById } from "@/services/salon.service";
+import { listServices } from "@/services/service.service";
+import { createBooking } from "@/services/booking.service";
+import { useAuthStore } from "@/store/authStore";
 import type { Service } from "@/types/service.types";
 import type { Salon } from "@/types/salon.types";
 
 export function BookingFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuthStore();
 
   // ----------------------------------------------------
   // States
@@ -47,61 +50,29 @@ export function BookingFlow() {
   // Loading animation state for payment simulation
   const [isProcessingPayment, setIsProcessingPayment] = useState(false);
 
-  // ----------------------------------------------------
-  // Parse Query Parameters / Default Mock Data
-  // ----------------------------------------------------
-  const bookingData = useMemo(() => {
-    const salonSlug = searchParams.get("salon");
-    const serviceSlugs = searchParams.get("services")?.split(",") || [];
-    const dateParam = searchParams.get("date");
-    const timeParam = searchParams.get("time");
-
-    // Resolve Salon
-    let salon: Salon | undefined = allSalons.find((s) => s.slug === salonSlug);
-    if (!salon) {
-      // Default fallback salon
-      salon = {
-        slug: "shena-atelier",
-        name: "Shena Atelier",
-        location: "GS Road, Guwahati",
-        image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB3U--B6Fg150P23L0X7vArxGc3SEsTB22EKyAJ8I5CiVuYSdeCvR1sM7IL9O6N5Req9Pn76s1jSh4_F-WLwVbJb0S4ZynaanN8A0avba9tW25W3TKZ1tIG8wCRsSAw95udWGCjbwg8xTuiddoMO6DoxV0eY0HBQqg8-ec8K5k7qHeUwEvWBFgcmsp72y-7i0ZEPWUyYl0cmmVji-5kXvBqkpn--WayanFFq9EQwYMYhMmRZRV-ea1PBQvpHc5eoeo5rPSsjixt9Q",
-        rating: "4.9",
-        distance: "0.5 km",
-      };
+  // Dynamic API states for Salon & Services
+  const [salonData, setSalonData] = useState<Salon>({
+    slug: "shena-atelier",
+    name: "Shena Atelier",
+    location: "GS Road, Guwahati",
+    image: "https://lh3.googleusercontent.com/aida-public/AB6AXuB3U--B6Fg150P23L0X7vArxGc3SEsTB22EKyAJ8I5CiVuYSdeCvR1sM7IL9O6N5Req9Pn76s1jSh4_F-WLwVbJb0S4ZynaanN8A0avba9tW25W3TKZ1tIG8wCRsSAw95udWGCjbwg8xTuiddoMO6DoxV0eY0HBQqg8-ec8K5k7qHeUwEvWBFgcmsp72y-7i0ZEPWUyYl0cmmVji-5kXvBqkpn--WayanFFq9EQwYMYhMmRZRV-ea1PBQvpHc5eoeo5rPSsjixt9Q",
+    rating: "4.9",
+    distance: "0.5 km",
+  });
+  const [servicesData, setServicesData] = useState<Service[]>([
+    {
+      slug: "balayage-hair",
+      label: "Balayage",
+      icon: "content_cut",
+      description: "French hand-painted sun-kissed highlighting.",
+      price: 4500,
+      duration: "150 mins",
+      image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDTiZkBArq0KoSUCTCCNizTzBLU55r_VJOaY7XOUaZwwW2HzdfNKtzX8QfShDGVN6aA5WGu2aOk0MdR70LNX0vZvMeXN8FBI6Hvf3FQElGLXFA0nBgjiXyrEFSoruadIvwSjTvLKyh7PncYkPejreKrjmkJcLEk_fI8BcAd4tyYARXmc_mXb0UiGmhSQGhuGYJJKIQDSe49j0tW1ajrIE3Xy_iZ2kEdfsbEfYy-RtAIbiwiUD4Guh-x4wS9ekVKh9mCOxAQ8WPOvA",
     }
+  ]);
+  const [isLoadingData, setIsLoadingData] = useState(true);
 
-    // Resolve Services
-    let services: Service[] = [];
-    serviceSlugs.forEach((slug) => {
-      const s = allServices.find((item) => item.slug === slug);
-      if (s) services.push(s);
-    });
-
-    // Default fallback service to match the mockup exactly
-    if (services.length === 0) {
-      services = [
-        {
-          slug: "balayage-hair",
-          label: "Balayage",
-          icon: "content_cut",
-          description: "French hand-painted sun-kissed highlighting.",
-          price: 4500,
-          duration: "150 mins",
-          image: "https://lh3.googleusercontent.com/aida-public/AB6AXuDTiZkBArq0KoSUCTCCNizTzBLU55r_VJOaY7XOUaZwwW2HzdfNKtzX8QfShDGVN6aA5WGu2aOk0MdR70LNX0vZvMeXN8FBI6Hvf3FQElGLXFA0nBgjiXyrEFSoruadIvwSjTvLKyh7PncYkPejreKrjmkJcLEk_fI8BcAd4tyYARXmc_mXb0UiGmhSQGhuGYJJKIQDSe49j0tW1ajrIE3Xy_iZ2kEdfsbEfYy-RtAIbiwiUD4Guh-x4wS9ekVKh9mCOxAQ8WPOvA",
-        },
-      ];
-    }
-
-    // If query params had dates, sync them
-    return {
-      salon,
-      services,
-      initialDate: dateParam || "2024-10-15",
-      initialTime: timeParam || "11:30 AM",
-    };
-  }, [searchParams]);
-
-  // Sync initial query params on mount
+  // Sync initial query params & fetch from API on mount
   useEffect(() => {
     if (searchParams.get("date")) {
       setSelectedDate(searchParams.get("date")!);
@@ -114,20 +85,69 @@ export function BookingFlow() {
     if (searchParams.get("time")) {
       setSelectedTimeSlot(searchParams.get("time")!);
     }
+
+    const fetchBookingData = async () => {
+      setIsLoadingData(true);
+      try {
+        const salonSlug = searchParams.get("salon");
+        const serviceSlugs = searchParams.get("services")?.split(",") || [];
+
+        if (salonSlug) {
+          const seller = await getSalonById(salonSlug);
+          if (seller) {
+            setSalonData({
+              slug: seller._id,
+              name: seller.salonName,
+              rating: "4.8",
+              distance: `${seller.city}, ${seller.state}`,
+              price: "₹₹₹",
+              description: seller.bio || "",
+              location: `${seller.city}, ${seller.state}`,
+              image: seller.shopImage,
+            });
+          }
+        }
+
+        if (serviceSlugs.length > 0) {
+          const apiServices = await listServices({ sellerId: salonSlug || "" });
+          const matched = apiServices
+            .filter((s) => serviceSlugs.includes(s._id))
+            .map((s) => ({
+              slug: s._id,
+              label: s.title || (s as any).label || s.category,
+              icon: "spa",
+              description: s.description,
+              price: s.price,
+              duration: typeof s.duration === "number" ? `${s.duration} mins` : s.duration,
+              rating: 4.8,
+              category: s.category?.toLowerCase() || "wellness",
+              image: s.image,
+            }));
+          if (matched.length > 0) {
+            setServicesData(matched);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load booking data:", err);
+      } finally {
+        setIsLoadingData(false);
+      }
+    };
+    fetchBookingData();
   }, [searchParams]);
 
   // ----------------------------------------------------
   // Dynamic Pricing Calculation
   // ----------------------------------------------------
   const totalPrice = useMemo(() => {
-    // If it's our default balayage from query param resolve, let's keep it 4500 to match mockup
-    return bookingData.services.reduce((sum, s) => {
+    return servicesData.reduce((sum, s) => {
       if (s.slug === "balayage-hair" && s.price === 6500 && !searchParams.get("services")) {
         return sum + 4500; // default mockup override
       }
       return sum + (s.price || 0);
     }, 0);
-  }, [bookingData.services, searchParams]);
+  }, [servicesData, searchParams]);
+
 
   // ----------------------------------------------------
   // Calendar Grid Builder (Standard Correct Calendar)
@@ -233,7 +253,7 @@ export function BookingFlow() {
   // ----------------------------------------------------
   // Wizard Handlers
   // ----------------------------------------------------
-  const handleProceed = () => {
+  const handleProceed = async () => {
     if (step === 1) {
       setStep(2);
     } else if (step === 2) {
@@ -257,13 +277,34 @@ export function BookingFlow() {
         }
       }
 
-      // Simulate payment processing loader
+      if (!user) {
+        alert("Please log in to complete your booking.");
+        router.push(`/login?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`);
+        return;
+      }
+
       setIsProcessingPayment(true);
-      setTimeout(() => {
-        setIsProcessingPayment(false);
-        setBookingId(`SHN-${Math.floor(1000 + Math.random() * 9000)}-${new Date().getFullYear()}`);
+      try {
+        const bookingPromises = servicesData.map((service) => {
+          return createBooking({
+            userId: user.id,
+            sellerId: salonData.slug,
+            serviceId: service.slug,
+            bookingDate: selectedDate,
+            timeSlot: selectedTimeSlot,
+            bookingStatus: "CONFIRMED",
+            paymentStatus: paymentMethod === "salon" ? "UNPAID" : "PAID",
+          });
+        });
+        const results = await Promise.all(bookingPromises);
+        const firstResult = results[0];
+        setBookingId(firstResult._id || `SHN-${Math.floor(1000 + Math.random() * 9000)}-${new Date().getFullYear()}`);
         setStep(4);
-      }, 1500); // 1.5s visual loader
+      } catch (err: any) {
+        alert(`Failed to confirm booking: ${err.message || "Please make sure you are logged in."}`);
+      } finally {
+        setIsProcessingPayment(false);
+      }
     }
   };
 
@@ -759,7 +800,7 @@ export function BookingFlow() {
 
                 {/* Service Card */}
                 <div className="space-y-3">
-                  {bookingData.services.map((service, idx) => (
+                  {servicesData.map((service, idx) => (
                     <div 
                       key={`${service.slug}-${idx}`} 
                       className="bg-white rounded-2xl p-4 flex gap-4 items-center border border-outline-variant/10 shadow-sm transition-all hover:scale-[1.01] duration-300"
@@ -922,7 +963,7 @@ export function BookingFlow() {
                   Booking Confirmed!
                 </h2>
                 <p className="text-xs sm:text-sm text-on-surface-variant font-medium max-w-md mx-auto">
-                  Your appointment at <strong className="text-primary">{bookingData.salon.name}</strong> has been successfully scheduled. A confirmation receipt has been sent to your email.
+                  Your appointment at <strong className="text-primary">{salonData.name}</strong> has been successfully scheduled. A confirmation receipt has been sent to your email.
                 </p>
               </div>
 
@@ -951,7 +992,7 @@ export function BookingFlow() {
                   <div className="space-y-1">
                     <span className="block text-[10px] font-bold text-outline uppercase tracking-wider">Service</span>
                     <span className="font-extrabold text-on-surface">
-                      {bookingData.services.map(s => s.slug === "balayage-hair" ? "Balayage" : s.label).join(", ")}
+                      {servicesData.map(s => s.slug === "balayage-hair" ? "Balayage" : s.label).join(", ")}
                     </span>
                   </div>
 
@@ -959,7 +1000,7 @@ export function BookingFlow() {
                   <div className="space-y-1">
                     <span className="block text-[10px] font-bold text-outline uppercase tracking-wider">Salon Location</span>
                     <span className="font-extrabold text-on-surface">
-                      {bookingData.salon.name} • <span className="font-semibold text-on-surface-variant">{bookingData.salon.location}</span>
+                      {salonData.name} • <span className="font-semibold text-on-surface-variant">{salonData.location}</span>
                     </span>
                   </div>
 

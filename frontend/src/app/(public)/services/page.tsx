@@ -6,13 +6,16 @@ import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/common/Container";
 import { ServicesHero } from "@/components/service/ServicesHero";
 import { ServiceGrid } from "@/components/service/ServiceGrid";
-import { services } from "@/data/services";
+import { listServices, type Service } from "@/services/service.service";
+import type { Service as ServiceType } from "@/types/service.types";
 
 export default function Page() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("default");
   const [searchQuery, setSearchQuery] = useState("");
   const [isSortOpen, setIsSortOpen] = useState(false);
+  const [allServices, setAllServices] = useState<ServiceType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const sortRef = useRef<HTMLDivElement>(null);
 
   // Close dropdown on click outside
@@ -26,7 +29,27 @@ export default function Page() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Categories list
+  // Fetch services from API on mount
+  useEffect(() => {
+    listServices()
+      .then((apiServices: Service[]) => {
+        const normalized: ServiceType[] = apiServices.map((s) => ({
+          slug: s._id,
+          label: s.title || (s as any).label || s.category,
+          icon: "spa",
+          description: s.description,
+          price: s.price,
+          duration: typeof s.duration === "number" ? `${s.duration} mins` : s.duration,
+          rating: 4.8,
+          category: s.category?.toLowerCase() || "wellness",
+          image: s.image,
+        }));
+        setAllServices(normalized);
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, []);
+
   const categories = [
     { label: "All", value: "all" },
     { label: "Haircare", value: "hair" },
@@ -36,18 +59,15 @@ export default function Page() {
     { label: "Makeup Glam", value: "makeup" },
   ];
 
-  // Filter and Sort services list
   const filteredServices = useMemo(() => {
-    let result = [...services];
+    let result = [...allServices];
 
-    // Filter by category
     if (selectedCategory !== "all") {
       result = result.filter(
         (service) => service.category?.toLowerCase() === selectedCategory
       );
     }
 
-    // Filter by search query
     if (searchQuery.trim() !== "") {
       const q = searchQuery.toLowerCase();
       result = result.filter(
@@ -57,7 +77,6 @@ export default function Page() {
       );
     }
 
-    // Apply sorting
     if (sortBy === "price-asc") {
       result.sort((a, b) => (a.price || 0) - (b.price || 0));
     } else if (sortBy === "price-desc") {
@@ -67,20 +86,16 @@ export default function Page() {
     }
 
     return result;
-  }, [selectedCategory, sortBy, searchQuery]);
+  }, [allServices, selectedCategory, sortBy, searchQuery]);
 
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col">
-      {/* Top Header / Navigation */}
       <Navbar />
 
-      {/* Main Page Area */}
       <main className="flex-grow pt-28 pb-24 md:pb-12">
         <Container>
-          {/* Services Visual Hero */}
           <ServicesHero />
 
-          {/* Boutique Title & Filter Controls */}
           <div id="services-list-section" className="flex flex-col md:flex-row md:items-end justify-between mb-8 gap-6 select-none scroll-mt-28">
             <div>
               <h2 className="text-on-background font-bold text-2xl md:text-3xl tracking-tight">
@@ -91,9 +106,7 @@ export default function Page() {
               </p>
             </div>
 
-            {/* Interactive Filters Area (Search + Sort Dropdown) */}
             <div className="flex items-center gap-4 w-full md:w-auto">
-              {/* Local Search Input */}
               <div className="relative flex-1 md:w-64">
                 <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-outline text-lg">
                   search
@@ -107,7 +120,6 @@ export default function Page() {
                 />
               </div>
 
-              {/* Sort Dropdown */}
               <div className="relative" ref={sortRef}>
                 <button
                   onClick={() => setIsSortOpen(!isSortOpen)}
@@ -130,10 +142,7 @@ export default function Page() {
                       ].map((option) => (
                         <button
                           key={option.value}
-                          onClick={() => {
-                            setSortBy(option.value);
-                            setIsSortOpen(false);
-                          }}
+                          onClick={() => { setSortBy(option.value); setIsSortOpen(false); }}
                           className={`text-left px-3 py-2 rounded-xl text-xs font-semibold transition-all duration-200 cursor-pointer ${
                             sortBy === option.value
                               ? "bg-primary/5 text-primary"
@@ -150,7 +159,6 @@ export default function Page() {
             </div>
           </div>
 
-          {/* Category Switcher Row */}
           <div className="flex gap-3 overflow-x-auto pb-4 hide-scrollbar select-none mb-12 -mx-4 px-4 sm:mx-0 sm:px-0">
             {categories.map((category) => {
               const isActive = selectedCategory === category.value;
@@ -170,12 +178,18 @@ export default function Page() {
             })}
           </div>
 
-          {/* Services Menu Grid */}
-          <ServiceGrid services={filteredServices} />
+          {isLoading ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-64 bg-surface-container-low rounded-3xl animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <ServiceGrid services={filteredServices} />
+          )}
         </Container>
       </main>
 
-      {/* Bottom Footer */}
       <Footer />
     </div>
   );

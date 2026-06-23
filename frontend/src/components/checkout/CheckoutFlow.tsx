@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/common/Container";
+import { useAuthStore } from "@/store/authStore";
 
 interface CheckoutItemData {
   id: string;
@@ -59,6 +60,13 @@ export function CheckoutFlow() {
   // ----------------------------------------------------
   useEffect(() => {
     if (typeof window !== "undefined") {
+      const loggedIn = localStorage.getItem("shena_user_logged_in") === "true";
+      if (!loggedIn) {
+        alert("Please log in to complete your checkout.");
+        router.push(`/login?redirect=${encodeURIComponent("/checkout")}`);
+        return;
+      }
+
       const savedItems = localStorage.getItem("shena_cart_items");
       if (savedItems) {
         try {
@@ -104,7 +112,7 @@ export function CheckoutFlow() {
         setDiscountPercent(Number(savedDiscount));
       }
     }
-  }, []);
+  }, [router]);
 
   // ----------------------------------------------------
   // Calculations

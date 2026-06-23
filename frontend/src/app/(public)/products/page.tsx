@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/common/Container";
@@ -8,30 +8,53 @@ import { ProductsHero } from "@/components/product/ProductsHero";
 import { ProductCategories } from "@/components/product/ProductCategories";
 import { ProductFilters } from "@/components/product/ProductFilters";
 import { ProductGrid } from "@/components/product/ProductGrid";
-import { products } from "@/data/products";
+import { listProducts, type Product } from "@/services/product.service";
+import type { Product as ProductType } from "@/types/product.types";
 
 export default function Page() {
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [sortBy, setSortBy] = useState("default");
   const [showSaleOnly, setShowSaleOnly] = useState(false);
+  const [allProducts, setAllProducts] = useState<ProductType[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    listProducts()
+      .then((apiProducts: Product[]) => {
+        // Normalize API products to the ProductType used by ProductGrid
+        const normalized: ProductType[] = apiProducts.map((p) => ({
+          id: p._id,
+          slug: p._id,
+          name: p.name,
+          title: p.name,
+          brand: p.brand,
+          price: p.price,
+          oldPrice: p.mrp,
+          isSale: p.discount ? p.discount > 0 : false,
+          category: p.category?.toLowerCase(),
+          image: p.image,
+          description: p.description,
+        }));
+        setAllProducts(normalized);
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, []);
 
   // Filter and sort products dynamically
   const filteredProducts = useMemo(() => {
-    let result = [...products];
+    let result = [...allProducts];
 
-    // Filter by category
     if (selectedCategory !== "all") {
       result = result.filter(
         (product) => product.category?.toLowerCase() === selectedCategory
       );
     }
 
-    // Filter by sale only
     if (showSaleOnly) {
       result = result.filter((product) => product.isSale);
     }
 
-    // Apply sorting
     if (sortBy === "price-asc") {
       result.sort((a, b) => {
         const priceA = typeof a.price === "number" ? a.price : parseFloat(String(a.price).replace(/[^\d]/g, "")) || 0;
@@ -53,20 +76,16 @@ export default function Page() {
     }
 
     return result;
-  }, [selectedCategory, sortBy, showSaleOnly]);
+  }, [allProducts, selectedCategory, sortBy, showSaleOnly]);
 
   return (
     <div className="bg-surface text-on-surface min-h-screen flex flex-col">
-      {/* Premium Glass Header & Navigation */}
       <Navbar />
 
-      {/* Main Marketplace Area */}
       <main className="flex-grow pt-28 pb-24 md:pb-12">
         <Container>
-          {/* Editorial Split Hero Section */}
           <ProductsHero />
 
-          {/* Boutique Filter & Navigation Section */}
           <div id="boutique-section" className="flex items-center justify-between mb-6 scroll-mt-28 select-none">
             <div>
               <h2 className="text-on-background font-bold text-2xl md:text-3xl tracking-tight">
@@ -84,7 +103,6 @@ export default function Page() {
             />
           </div>
 
-          {/* Category Pill Controls */}
           <div className="mb-12">
             <ProductCategories
               selectedCategory={selectedCategory}
@@ -92,12 +110,18 @@ export default function Page() {
             />
           </div>
 
-          {/* Premium Product Grid */}
-          <ProductGrid products={filteredProducts} />
+          {isLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[...Array(8)].map((_, i) => (
+                <div key={i} className="h-72 bg-surface-container-low rounded-3xl animate-pulse" />
+              ))}
+            </div>
+          ) : (
+            <ProductGrid products={filteredProducts} />
+          )}
         </Container>
       </main>
 
-      {/* Footer Area */}
       <Footer />
     </div>
   );

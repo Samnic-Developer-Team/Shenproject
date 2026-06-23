@@ -1,9 +1,20 @@
 "use client";
 
-import { products } from "@/data/products";
+import { useEffect, useState } from "react";
+import { listProducts, type Product } from "@/services/product.service";
 import { ProductCard } from "./ProductCard";
 
 export function FeaturedProducts() {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    listProducts({ limit: "8" })
+      .then(setProducts)
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, []);
+
   const handleScroll = (direction: "left" | "right") => {
     const grid = document.getElementById("products-grid");
     if (grid) {
@@ -44,18 +55,40 @@ export function FeaturedProducts() {
           </div>
         </div>
 
-        {/* Products Grid (scrollable on mobile, grid on desktop) */}
-        <div 
-          id="products-grid"
-          className="flex md:grid md:grid-cols-4 gap-8 overflow-x-auto md:overflow-x-visible hide-scrollbar pb-4 -mx-6 px-6 md:mx-0 md:px-0"
-        >
-          {products.map((product) => (
-            <div key={product.slug} className="shrink-0 w-72 md:w-auto">
-              <ProductCard product={product} />
-            </div>
-          ))}
-        </div>
-
+        {/* Products Grid */}
+        {isLoading ? (
+          <div className="flex gap-8 overflow-x-auto hide-scrollbar pb-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="shrink-0 w-72 md:w-auto flex-1 h-80 bg-surface-container-low rounded-3xl animate-pulse" />
+            ))}
+          </div>
+        ) : products.length > 0 ? (
+          <div 
+            id="products-grid"
+            className="flex md:grid md:grid-cols-4 gap-8 overflow-x-auto md:overflow-x-visible hide-scrollbar pb-4 -mx-6 px-6 md:mx-0 md:px-0"
+          >
+            {products.map((product) => {
+              // Normalize API product to match ProductCard's expected shape
+              const normalized = {
+                ...product,
+                id: product._id,
+                slug: product._id,
+                title: product.name,
+                isSale: product.discount ? product.discount > 0 : false,
+                oldPrice: product.mrp,
+              };
+              return (
+                <div key={product._id} className="shrink-0 w-72 md:w-auto">
+                  <ProductCard product={normalized as any} />
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="text-center py-16 text-on-surface-variant text-sm">
+            No products available yet. Check back soon!
+          </div>
+        )}
       </div>
     </section>
   );

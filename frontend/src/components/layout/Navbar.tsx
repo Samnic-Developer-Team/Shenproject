@@ -4,10 +4,21 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SearchBar } from "@/components/common/SearchBar";
+import { useAuthStore } from "@/store/authStore";
 
 export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { user, isAuthenticated, clearAuth } = useAuthStore();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
+  const handleLogout = () => {
+    clearAuth();
+    localStorage.removeItem("shena_user_token");
+    localStorage.removeItem("shena_user_logged_in");
+    localStorage.removeItem("shena_current_user");
+    window.location.href = "/";
+  };
 
   // State to track dynamic cart items count
   const [cartCount, setCartCount] = useState(0);
@@ -125,14 +136,49 @@ export function Navbar() {
               )}
             </Link>
 
-            {/* User Avatar */}
-            <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed/80 cursor-pointer shadow-sm hover:border-primary transition-all">
-              <img
-                alt="User profile"
-                src="https://lh3.googleusercontent.com/aida-public/AB6AXuADAbuBiVVuF4bU3Ryk_ykqbGp0R3jvNnhQPSDKrOUapyDRrIwPMs3PvvDOzE2aSgGVe42VzB9FTABxgkoXRnsGW8em_cGpkyyAEUgn6dqwIDi9ON-DG_1bC8MHGLOUuXicwtIdtSkuubPDETpPeye_WYjg35uqFSnj3Ybv7UWYoIH2qIyiqnN2muLLwO8xKOj05oLrFHbLTSfmmhE7fxrH3NJ9kD64cccxL6-XLPlwi8aEwRLok-ie1Lm8G819ZPGh5x_NUlLYqw"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            {/* User Profile / Login Action */}
+            {isAuthenticated && user ? (
+              <div className="relative">
+                <button
+                  onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                  className="w-10 h-10 rounded-full overflow-hidden border-2 border-primary-fixed/80 cursor-pointer shadow-sm hover:border-primary transition-all flex items-center justify-center bg-violet-100 text-primary text-sm font-bold focus:outline-none"
+                >
+                  {user.name ? user.name.substring(0, 2).toUpperCase() : "U"}
+                </button>
+
+                {isDropdownOpen && (
+                  <div className="absolute right-0 mt-2.5 w-48 bg-white border border-outline-variant/15 rounded-2xl shadow-xl py-2 z-50 animate-in slide-in-from-top-2 duration-200">
+                    <div className="px-4 py-2 border-b border-outline-variant/10">
+                      <p className="text-xs font-black text-on-surface line-clamp-1">{user.name}</p>
+                      <p className="text-[10px] text-outline font-semibold line-clamp-1">{user.email}</p>
+                    </div>
+                    <Link
+                      href="/profile"
+                      onClick={() => setIsDropdownOpen(false)}
+                      className="flex items-center gap-2 px-4 py-2 text-xs font-bold text-on-surface-variant hover:bg-surface-container-low transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-sm">person</span>
+                      My Profile
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-2 px-4 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition-colors text-left border-t border-outline-variant/5"
+                    >
+                      <span className="material-symbols-outlined text-sm">logout</span>
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white hover:bg-violet-800 rounded-full text-xs font-extrabold transition-all duration-300 active:scale-95 shadow-sm"
+              >
+                <span className="material-symbols-outlined text-sm">login</span>
+                Sign In
+              </Link>
+            )}
 
             {/* Hamburger (Mobile/Tablet Only) */}
             <button
@@ -228,6 +274,38 @@ export function Navbar() {
                 <span className="material-symbols-outlined">storefront</span>
                 Become a Seller
               </Link>
+
+              {isAuthenticated ? (
+                <>
+                  <Link
+                    href="/profile"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="flex items-center gap-3 py-2 px-4 rounded-xl text-on-surface-variant font-medium hover:bg-surface-container-low transition-colors mt-2"
+                  >
+                    <span className="material-symbols-outlined">person</span>
+                    My Profile
+                  </Link>
+                  <button
+                    onClick={() => {
+                      setIsMobileMenuOpen(false);
+                      handleLogout();
+                    }}
+                    className="flex items-center gap-3 py-2 px-4 rounded-xl text-rose-600 font-bold hover:bg-rose-50 transition-colors w-full text-left mt-1 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined">logout</span>
+                    Sign Out
+                  </button>
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center gap-3 py-2 px-4 rounded-xl text-primary font-bold bg-primary/10 hover:bg-primary/20 transition-colors border border-primary/10 mt-2"
+                >
+                  <span className="material-symbols-outlined">login</span>
+                  Sign In
+                </Link>
+              )}
             </nav>
           </div>
         </div>
@@ -254,7 +332,7 @@ export function Navbar() {
           <span className={`text-[10px] ${pathname === "/explore" ? "font-bold" : "font-medium"} mt-1 uppercase tracking-wider`}>Search</span>
         </Link>
         <Link
-          href="/bookings"
+          href={isAuthenticated ? "/bookings" : "/login?redirect=/bookings"}
           className={pathname === "/bookings"
             ? "flex flex-col items-center justify-center bg-violet-100/80 text-primary rounded-2xl px-5 py-2.5 scale-105 transition-all duration-300"
             : "flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:bg-surface-container-low rounded-xl transition-all active:scale-105"}
@@ -277,7 +355,7 @@ export function Navbar() {
           <span className={`text-[10px] ${pathname === "/cart" ? "font-bold" : "font-medium"} mt-1 uppercase tracking-wider`}>Cart</span>
         </Link>
         <Link
-          href="/profile"
+          href={isAuthenticated ? "/profile" : "/login?redirect=/profile"}
           className={pathname === "/profile"
             ? "flex flex-col items-center justify-center bg-violet-100/80 text-primary rounded-2xl px-5 py-2.5 scale-105 transition-all duration-300"
             : "flex flex-col items-center justify-center text-on-surface-variant px-4 py-2 hover:bg-surface-container-low rounded-xl transition-all active:scale-105"}
