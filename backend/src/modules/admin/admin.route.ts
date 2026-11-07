@@ -5,6 +5,8 @@ import { adminController } from './admin.controller';
 
 const router = Router();
 
+router.get('/stats', authMiddleware, roleGuard.admin, adminController.getStats);
 router.get('/', authMiddleware, roleGuard.admin, adminController.findAll);
 
 export default router;
+

@@ -72,12 +72,16 @@ export default function RegisterPage() {
       <div className="max-w-4xl w-full bg-white border border-outline-variant/10 rounded-[36px] shadow-[0px_24px_56px_rgba(21,28,39,0.03)] grid grid-cols-1 md:grid-cols-12 overflow-hidden min-h-[580px]">
         
         {/* LEFT: Branding */}
-        <div className="md:col-span-5 bg-gradient-to-br from-rose-500 to-[#c2185b] p-8 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="md:col-span-5 bg-black p-8 text-white flex flex-col justify-between relative overflow-hidden">
           <div className="absolute -top-12 -left-12 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-pink-300/10 rounded-full blur-3xl pointer-events-none" />
 
-          <Link href="/" className="text-xl font-bold tracking-tight text-white select-none">
-            Shena
+          <Link href="/" className="flex items-center select-none">
+            <img
+              src="/logo.jpeg"
+              alt="Shena Logo"
+              className="w-20 rounded-2xl object-cover border border-white/20 shadow-md"
+            />
           </Link>
 
           <div className="space-y-6 my-8 md:my-0 select-none">
@@ -90,23 +94,20 @@ export default function RegisterPage() {
 
             <div className="space-y-3.5 pt-4 text-xs font-semibold text-white/90">
               <div className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-sm font-bold text-pink-200">check_circle</span>
+                <span className="material-symbols-outlined text-sm font-bold text-neutral-300">check_circle</span>
                 <span>Book appointments instantly</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-sm font-bold text-pink-200">check_circle</span>
+                <span className="material-symbols-outlined text-sm font-bold text-neutral-300">check_circle</span>
                 <span>Shop curated beauty products</span>
               </div>
               <div className="flex items-start gap-2">
-                <span className="material-symbols-outlined text-sm font-bold text-pink-200">check_circle</span>
+                <span className="material-symbols-outlined text-sm font-bold text-neutral-300">check_circle</span>
                 <span>Track bookings & order history</span>
               </div>
             </div>
           </div>
 
-          <p className="text-[9px] text-white/60 font-medium select-none">
-            © 2024 Shena Atelier • Bangalore • Delhi
-          </p>
         </div>
 
         {/* RIGHT: Registration Form */}
@@ -132,7 +133,7 @@ export default function RegisterPage() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
+                className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-black focus:ring-2 focus:ring-black/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
                 placeholder="e.g. Priya Sharma"
               />
             </div>
@@ -144,7 +145,7 @@ export default function RegisterPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
+                className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-black focus:ring-2 focus:ring-black/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
                 placeholder="you@example.com"
               />
             </div>
@@ -157,7 +158,7 @@ export default function RegisterPage() {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
+                  className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-black focus:ring-2 focus:ring-black/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
                   placeholder="Min. 6 characters"
                 />
               </div>
@@ -168,7 +169,7 @@ export default function RegisterPage() {
                   required
                   value={formData.confirmPassword}
                   onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
+                  className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-black focus:ring-2 focus:ring-black/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
                   placeholder="••••••••"
                 />
               </div>
@@ -179,7 +180,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 rounded-2xl font-extrabold text-sm shadow-lg transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-rose-500 to-[#c2185b] text-white shadow-rose-500/20 hover:opacity-[0.97]"
+              className="w-full py-3.5 rounded-2xl font-extrabold text-sm shadow-lg transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer bg-black text-white shadow-black/20 hover:bg-neutral-900"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
@@ -191,7 +192,7 @@ export default function RegisterPage() {
 
             <p className="text-center text-xs text-outline font-semibold select-none">
               Already have an account?{" "}
-              <Link href="/login" className="text-rose-500 hover:underline font-extrabold">
+              <Link href="/login" className="text-black hover:underline font-extrabold">
                 Sign in here
               </Link>
             </p>

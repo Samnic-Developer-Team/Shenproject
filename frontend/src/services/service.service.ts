@@ -25,9 +25,14 @@ export interface Service {
 }
 
 export async function listServices(params?: Record<string, string>): Promise<Service[]> {
-  const query = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await apiRequest<{ data: Service[] }>(`/services${query}`);
-  return res.data || [];
+  try {
+    const query = params ? "?" + new URLSearchParams(params).toString() : "";
+    const res = await apiRequest<{ data: Service[] }>(`/services${query}`);
+    return res.data || [];
+  } catch (err) {
+    console.warn("Failed to list services:", err);
+    return [];
+  }
 }
 
 export async function createService(payload: Record<string, unknown>): Promise<Service> {

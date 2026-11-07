@@ -8,9 +8,13 @@ export function Footer() {
 
           {/* Logo & Description */}
           <div className="max-w-xs">
-            <h3 className="text-2xl font-bold bg-gradient-to-r from-violet-700 to-fuchsia-600 bg-clip-text text-transparent mb-4">
-              Shena
-            </h3>
+            <div className="flex items-center mb-4">
+              <img
+                src="/logo.jpeg"
+                alt="Shena Logo"
+                className="w-20 rounded-2xl object-cover border border-outline-variant/10 shadow-sm"
+              />
+            </div>
             <p className="text-on-surface-variant text-sm leading-relaxed">
               The luxury standard for beauty services in Itanagar, Papum Pare, and Guwahati. Book artists, find studios, and shop curated beauty.
             </p>
@@ -91,7 +95,7 @@ export function Footer() {
         {/* Footer Bottom info */}
         <div className="mt-16 pt-8 border-t border-outline-variant/10 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-on-surface-variant/70">
-            © 2026 GlowHub Premium Services Pvt Ltd. All rights reserved.
+            © 2026 Sh3na Premium Services Pvt Ltd. Developed and Designed by <a href="https://www.samnictech.in" target="_blank"> Samnic Tech</a>.
           </p>
           <div className="flex gap-6">
             <span className="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors text-xl">

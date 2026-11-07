@@ -62,9 +62,13 @@ export function Navbar() {
           <div className="flex items-center gap-8">
             <Link
               href="/"
-              className="text-2xl font-bold bg-gradient-to-r from-violet-700 to-fuchsia-600 bg-clip-text text-transparent tracking-tight hover:opacity-90 transition-opacity"
+              className="flex items-center hover:opacity-90 transition-opacity"
             >
-              Shena
+              <img
+                src="/logo.jpeg"
+                alt="Shena Logo"
+                className="w-18 rounded-2xl object-cover border border-outline-variant/10 shadow-sm"
+              />
             </Link>
 
             {/* Desktop Navigation Links */}
@@ -113,7 +117,7 @@ export function Navbar() {
             </div>
 
             {/* Become a Seller Button (Desktop Only) */}
-            <Link 
+            <Link
               href="/seller/login"
               className="hidden lg:flex items-center gap-1.5 px-4 py-2 border border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary hover:text-violet-800 rounded-full text-xs font-extrabold transition-all duration-300 active:scale-95 shadow-sm"
               title="Seller Portal Login / Registration"
@@ -123,7 +127,7 @@ export function Navbar() {
             </Link>
 
             {/* Cart Icon */}
-            <Link 
+            <Link
               href="/cart"
               className="relative p-2.5 text-on-surface-variant hover:bg-surface-variant/40 rounded-full transition-all group active:scale-95 flex items-center justify-center cursor-pointer"
               title="Shopping Bag"
@@ -264,7 +268,7 @@ export function Navbar() {
                 <span className="material-symbols-outlined">shopping_basket</span>
                 Products
               </Link>
-              
+
               {/* Become a Seller Link (Mobile Only) */}
               <Link
                 href="/seller/login"

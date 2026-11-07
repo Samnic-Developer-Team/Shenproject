@@ -22,6 +22,8 @@ export function FeaturedSalons() {
           description: s.bio || "",
           location: `${s.city}, ${s.state}`,
           image: s.shopImage,
+          serviceCount: s.serviceCount,
+          productCount: s.productCount,
         }));
         setSalons(normalized);
       })
@@ -32,14 +34,14 @@ export function FeaturedSalons() {
   return (
     <section className="py-16 bg-surface-container-low">
       <div className="container mx-auto px-6 max-w-7xl">
-        
+
         {/* Title Block */}
         <div className="flex flex-col mb-10 select-none">
           <span className="text-secondary font-extrabold text-xs uppercase tracking-widest">
             Handpicked
           </span>
           <h2 className="text-3xl font-extrabold text-on-surface mt-2 tracking-tight">
-            Curated Studios Near You
+            Curated Salons Near You
           </h2>
         </div>
 

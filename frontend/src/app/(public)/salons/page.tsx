@@ -25,6 +25,8 @@ export default function Page() {
           description: s.bio || "",
           location: `${s.city}, ${s.state}`,
           image: s.shopImage,
+          serviceCount: s.serviceCount,
+          productCount: s.productCount,
         }));
         setSalons(normalized);
       })

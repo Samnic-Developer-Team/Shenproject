@@ -50,12 +50,16 @@ export default function LoginPage() {
       <div className="max-w-4xl w-full bg-white border border-outline-variant/10 rounded-[36px] shadow-[0px_24px_56px_rgba(21,28,39,0.03)] grid grid-cols-1 md:grid-cols-12 overflow-hidden min-h-[520px]">
         
         {/* LEFT: Branding */}
-        <div className="md:col-span-5 bg-gradient-to-br from-rose-500 to-[#c2185b] p-8 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="md:col-span-5 bg-black p-8 text-white flex flex-col justify-between relative overflow-hidden">
           <div className="absolute -top-12 -left-12 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none" />
           <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-pink-300/10 rounded-full blur-3xl pointer-events-none" />
 
-          <Link href="/" className="text-xl font-bold tracking-tight text-white select-none">
-            Shena
+          <Link href="/" className="flex items-center select-none">
+            <img
+              src="/logo.jpeg"
+              alt="Shena Logo"
+              className="w-20 rounded-2xl object-cover border border-white/20 shadow-md"
+            />
           </Link>
 
           <div className="space-y-6 my-8 md:my-0 select-none">
@@ -78,9 +82,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          <p className="text-[9px] text-white/60 font-medium select-none">
-            © 2024 Shena Atelier • Bangalore • Delhi
-          </p>
         </div>
 
         {/* RIGHT: Login Form */}
@@ -106,7 +107,7 @@ export default function LoginPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
+                className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-black focus:ring-2 focus:ring-black/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
                 placeholder="you@example.com"
               />
             </div>
@@ -114,7 +115,7 @@ export default function LoginPage() {
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
                 <label className="text-[10px] font-black uppercase tracking-wider text-outline block">Password</label>
-                <Link href="/forgot-password" className="text-[10px] text-rose-500 hover:underline font-bold">
+                <Link href="/forgot-password" className="text-[10px] text-black hover:underline font-bold">
                   Forgot Password?
                 </Link>
               </div>
@@ -123,7 +124,7 @@ export default function LoginPage() {
                 required
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
+                className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-black focus:ring-2 focus:ring-black/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
                 placeholder="••••••••"
               />
             </div>
@@ -133,7 +134,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 rounded-2xl font-extrabold text-sm shadow-lg transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-rose-500 to-[#c2185b] text-white shadow-rose-500/20 hover:opacity-[0.97]"
+              className="w-full py-3.5 rounded-2xl font-extrabold text-sm shadow-lg transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer bg-black text-white shadow-black/20 hover:bg-neutral-900"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
@@ -145,7 +146,7 @@ export default function LoginPage() {
 
             <p className="text-center text-xs text-outline font-semibold select-none">
               New to Shena?{" "}
-              <Link href="/register" className="text-rose-500 hover:underline font-extrabold">
+              <Link href="/register" className="text-black hover:underline font-extrabold">
                 Create an account
               </Link>
             </p>
@@ -153,7 +154,7 @@ export default function LoginPage() {
             <div className="border-t border-outline-variant/10 pt-4 text-center">
               <p className="text-xs text-outline font-medium">
                 Are you a salon partner?{" "}
-                <Link href="/seller/login" className="text-primary hover:underline font-bold">
+                <Link href="/seller/login" className="text-black hover:underline font-bold">
                   Seller login →
                 </Link>
               </p>

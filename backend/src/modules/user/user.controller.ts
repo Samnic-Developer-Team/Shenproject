@@ -56,4 +56,22 @@ export const userController = {
       next(error);
     }
   },
+
+  listAllUsers: async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const users = await userService.listAll();
+      sendResponse({ res, message: 'Users fetched', data: users });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  toggleActive: async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await userService.toggleActive(String(req.params.id));
+      sendResponse({ res, message: 'User active status updated', data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
 };

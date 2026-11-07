@@ -21,7 +21,7 @@ export function BookingFlow() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1); // 1: Schedule, 2: Confirm, 3: Payment, 4: Success
   const [selectedDate, setSelectedDate] = useState("2024-10-15"); // default YYYY-MM-DD
   const [selectedTimeSlot, setSelectedTimeSlot] = useState("11:30 AM");
-  
+
   // Calendar month selection
   const [currentYear, setCurrentYear] = useState(2024);
   const [currentMonth, setCurrentMonth] = useState(9); // 0-indexed: October is 9
@@ -100,7 +100,7 @@ export function BookingFlow() {
               name: seller.salonName,
               rating: "4.8",
               distance: `${seller.city}, ${seller.state}`,
-              price: "₹₹₹",
+              price: "₹",
               description: seller.bio || "",
               location: `${seller.city}, ${seller.state}`,
               image: seller.shopImage,
@@ -156,7 +156,7 @@ export function BookingFlow() {
     const startOfMonth = new Date(currentYear, currentMonth, 1);
     const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
     const numDays = endOfMonth.getDate();
-    
+
     // Day of the week for first day (0 = Sunday, 1 = Monday... 6 = Saturday)
     let startDayOfWeek = startOfMonth.getDay();
     // Convert to Monday start: (0 -> 6, 1 -> 0, 2 -> 1, 3 -> 2, 4 -> 3, 5 -> 4, 6 -> 5)
@@ -241,12 +241,12 @@ export function BookingFlow() {
     const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
     const month = months[date.getMonth()];
     const year = date.getFullYear();
-    
+
     let suffix = "th";
     if (day === 1 || day === 21 || day === 31) suffix = "st";
     else if (day === 2 || day === 22) suffix = "nd";
     else if (day === 3 || day === 23) suffix = "rd";
-    
+
     return `${day}${suffix} ${month}, ${year}`;
   };
 
@@ -329,14 +329,14 @@ export function BookingFlow() {
 
   return (
     <div className="bg-[#f9f9ff] text-[#151c27] min-h-screen flex flex-col font-sans relative antialiased selection:bg-primary/10">
-      
+
       {/* ----------------------------------------------------
           MINIMALIST CHECKOUT TOP HEADER
           ---------------------------------------------------- */}
       <header className="sticky top-0 z-50 w-full bg-white border-b border-outline-variant/10 shadow-sm py-4 px-6 flex items-center justify-between transition-all">
         {/* Back Arrow + Brand Logo */}
         <div className="flex items-center gap-3">
-          <button 
+          <button
             onClick={handleBack}
             className="p-1.5 hover:bg-surface-container-low rounded-full transition-all active:scale-90 flex items-center justify-center cursor-pointer text-[#151c27]"
             title="Go Back"
@@ -357,7 +357,7 @@ export function BookingFlow() {
         </div>
 
         {/* Close Button */}
-        <button 
+        <button
           onClick={handleClose}
           className="p-1.5 hover:bg-surface-container-low rounded-full transition-all active:scale-90 flex items-center justify-center cursor-pointer text-[#151c27]"
           title="Cancel Booking"
@@ -372,12 +372,11 @@ export function BookingFlow() {
       {step < 4 && (
         <div className="w-full bg-white/70 backdrop-blur-md border-b border-outline-variant/5 py-4 select-none">
           <div className="max-w-2xl mx-auto flex items-center justify-between px-6">
-            
+
             {/* Step 1 */}
             <div className="flex items-center gap-2">
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${
-                step >= 1 ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" : "bg-surface-container-high text-on-surface-variant"
-              }`}>
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${step >= 1 ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" : "bg-surface-container-high text-on-surface-variant"
+                }`}>
                 {step > 1 ? "✓" : "1"}
               </span>
               <span className={`text-xs font-bold transition-colors ${step >= 1 ? "text-primary" : "text-outline"}`}>
@@ -390,9 +389,8 @@ export function BookingFlow() {
 
             {/* Step 2 */}
             <div className="flex items-center gap-2">
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${
-                step >= 2 ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" : "bg-surface-container-high text-on-surface-variant"
-              }`}>
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${step >= 2 ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" : "bg-surface-container-high text-on-surface-variant"
+                }`}>
                 {step > 2 ? "✓" : "2"}
               </span>
               <span className={`text-xs font-bold transition-colors ${step >= 2 ? "text-primary" : "text-outline"}`}>
@@ -405,9 +403,8 @@ export function BookingFlow() {
 
             {/* Step 3 */}
             <div className="flex items-center gap-2">
-              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${
-                step >= 3 ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" : "bg-surface-container-high text-on-surface-variant"
-              }`}>
+              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold transition-all ${step >= 3 ? "bg-primary text-white shadow-md shadow-primary/20 scale-105" : "bg-surface-container-high text-on-surface-variant"
+                }`}>
                 3
               </span>
               <span className={`text-xs font-bold transition-colors ${step >= 3 ? "text-primary" : "text-outline"}`}>
@@ -423,13 +420,13 @@ export function BookingFlow() {
           MAIN CONTENT WORKSPACE
           ---------------------------------------------------- */}
       <main className="flex-grow py-8 px-4 sm:px-6 lg:px-8 max-w-7xl w-full mx-auto pb-24">
-        
+
         {step < 4 ? (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-            
+
             {/* LEFT COLUMN: ACTIVE STEP VIEWS */}
             <div className="lg:col-span-7 space-y-6">
-              
+
               {/* STEP 1: SCHEDULE VIEW */}
               {step === 1 && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
@@ -445,7 +442,7 @@ export function BookingFlow() {
 
                   {/* Dynamic Calendar Widget */}
                   <div className="bg-white rounded-3xl p-5 border border-outline-variant/10 shadow-[0px_8px_24px_rgba(21,28,39,0.02)] select-none">
-                    
+
                     {/* Calendar Month Header */}
                     <div className="flex items-center justify-between mb-6 px-1">
                       <span className="font-bold text-on-surface text-base sm:text-lg">{monthName}</span>
@@ -479,7 +476,7 @@ export function BookingFlow() {
                       {calendarDays.map((cell, idx) => {
                         const isSelected = selectedDate === cell.dateStr;
                         const isToday = cell.dateStr === "2024-10-15"; // reference center date
-                        
+
                         return (
                           <button
                             key={`${cell.dateStr}-${idx}`}
@@ -491,15 +488,12 @@ export function BookingFlow() {
                                 setCurrentYear(cell.year);
                               }
                             }}
-                            className={`aspect-square w-full rounded-2xl flex items-center justify-center text-xs sm:text-sm font-semibold transition-all relative cursor-pointer active:scale-90 ${
-                              !cell.isCurrentMonth ? "text-outline/40 hover:bg-surface-container-low/40" : ""
-                            } ${
-                              cell.isCurrentMonth && !isSelected ? "text-on-surface hover:bg-surface-container-low" : ""
-                            } ${
-                              isSelected
+                            className={`aspect-square w-full rounded-2xl flex items-center justify-center text-xs sm:text-sm font-semibold transition-all relative cursor-pointer active:scale-90 ${!cell.isCurrentMonth ? "text-outline/40 hover:bg-surface-container-low/40" : ""
+                              } ${cell.isCurrentMonth && !isSelected ? "text-on-surface hover:bg-surface-container-low" : ""
+                              } ${isSelected
                                 ? "bg-primary text-white font-bold shadow-md shadow-primary/20 scale-102"
                                 : ""
-                            }`}
+                              }`}
                           >
                             <span>{cell.day}</span>
                             {/* Tiny dot indicators for demo */}
@@ -523,11 +517,10 @@ export function BookingFlow() {
                           <button
                             key={slot}
                             onClick={() => setSelectedTimeSlot(slot)}
-                            className={`px-6 py-3 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-sm ${
-                              isActive
-                                ? "bg-primary text-white shadow-primary/20 scale-102"
-                                : "bg-white text-on-surface hover:bg-surface-container-low border border-outline-variant/15"
-                            }`}
+                            className={`px-6 py-3 rounded-full text-xs sm:text-sm font-bold transition-all duration-300 active:scale-95 cursor-pointer shadow-sm ${isActive
+                              ? "bg-primary text-white shadow-primary/20 scale-102"
+                              : "bg-white text-on-surface hover:bg-surface-container-low border border-outline-variant/15"
+                              }`}
                           >
                             {slot}
                           </button>
@@ -553,7 +546,7 @@ export function BookingFlow() {
 
                   {/* Form Container */}
                   <div className="bg-white rounded-3xl p-6 sm:p-8 border border-outline-variant/10 shadow-[0px_8px_24px_rgba(21,28,39,0.02)] space-y-5">
-                    
+
                     {/* Row: First and Last Name */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
@@ -646,15 +639,14 @@ export function BookingFlow() {
 
                   {/* Payment Option Selector */}
                   <div className="space-y-4 select-none">
-                    
+
                     {/* Card Method option */}
                     <button
                       onClick={() => setPaymentMethod("card")}
-                      className={`w-full text-left bg-white border rounded-3xl p-5 transition-all cursor-pointer flex items-center justify-between ${
-                        paymentMethod === "card"
-                          ? "border-primary bg-primary/2 shadow-md shadow-primary/5"
-                          : "border-outline-variant/15 hover:border-primary/40 shadow-sm"
-                      }`}
+                      className={`w-full text-left bg-white border rounded-3xl p-5 transition-all cursor-pointer flex items-center justify-between ${paymentMethod === "card"
+                        ? "border-primary bg-primary/2 shadow-md shadow-primary/5"
+                        : "border-outline-variant/15 hover:border-primary/40 shadow-sm"
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="material-symbols-outlined text-primary text-2xl">credit_card</span>
@@ -663,9 +655,8 @@ export function BookingFlow() {
                           <p className="text-[11px] text-outline">Visa, Mastercard, RuPay, Amex</p>
                         </div>
                       </div>
-                      <span className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                        paymentMethod === "card" ? "border-primary bg-primary" : "border-outline-variant"
-                      }`}>
+                      <span className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${paymentMethod === "card" ? "border-primary bg-primary" : "border-outline-variant"
+                        }`}>
                         {paymentMethod === "card" && <span className="w-2.5 h-2.5 rounded-full bg-white" />}
                       </span>
                     </button>
@@ -714,11 +705,10 @@ export function BookingFlow() {
                     {/* UPI Option */}
                     <button
                       onClick={() => setPaymentMethod("upi")}
-                      className={`w-full text-left bg-white border rounded-3xl p-5 transition-all cursor-pointer flex items-center justify-between ${
-                        paymentMethod === "upi"
-                          ? "border-primary bg-primary/2 shadow-md shadow-primary/5"
-                          : "border-outline-variant/15 hover:border-primary/40 shadow-sm"
-                      }`}
+                      className={`w-full text-left bg-white border rounded-3xl p-5 transition-all cursor-pointer flex items-center justify-between ${paymentMethod === "upi"
+                        ? "border-primary bg-primary/2 shadow-md shadow-primary/5"
+                        : "border-outline-variant/15 hover:border-primary/40 shadow-sm"
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="material-symbols-outlined text-primary text-2xl">account_balance_wallet</span>
@@ -727,9 +717,8 @@ export function BookingFlow() {
                           <p className="text-[11px] text-outline">Fast, instant booking checkout</p>
                         </div>
                       </div>
-                      <span className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                        paymentMethod === "upi" ? "border-primary bg-primary" : "border-outline-variant"
-                      }`}>
+                      <span className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${paymentMethod === "upi" ? "border-primary bg-primary" : "border-outline-variant"
+                        }`}>
                         {paymentMethod === "upi" && <span className="w-2.5 h-2.5 rounded-full bg-white" />}
                       </span>
                     </button>
@@ -753,11 +742,10 @@ export function BookingFlow() {
                     {/* Pay at Salon Option */}
                     <button
                       onClick={() => setPaymentMethod("salon")}
-                      className={`w-full text-left bg-white border rounded-3xl p-5 transition-all cursor-pointer flex items-center justify-between ${
-                        paymentMethod === "salon"
-                          ? "border-primary bg-primary/2 shadow-md shadow-primary/5"
-                          : "border-outline-variant/15 hover:border-primary/40 shadow-sm"
-                      }`}
+                      className={`w-full text-left bg-white border rounded-3xl p-5 transition-all cursor-pointer flex items-center justify-between ${paymentMethod === "salon"
+                        ? "border-primary bg-primary/2 shadow-md shadow-primary/5"
+                        : "border-outline-variant/15 hover:border-primary/40 shadow-sm"
+                        }`}
                     >
                       <div className="flex items-center gap-3">
                         <span className="material-symbols-outlined text-primary text-2xl">store</span>
@@ -766,9 +754,8 @@ export function BookingFlow() {
                           <p className="text-[11px] text-outline">Pay using cash or card directly at the counter</p>
                         </div>
                       </div>
-                      <span className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${
-                        paymentMethod === "salon" ? "border-primary bg-primary" : "border-outline-variant"
-                      }`}>
+                      <span className={`w-5 h-5 rounded-full border flex items-center justify-center transition-all ${paymentMethod === "salon" ? "border-primary bg-primary" : "border-outline-variant"
+                        }`}>
                         {paymentMethod === "salon" && <span className="w-2.5 h-2.5 rounded-full bg-white" />}
                       </span>
                     </button>
@@ -781,10 +768,10 @@ export function BookingFlow() {
 
             {/* RIGHT COLUMN: STICKY BOOKING SUMMARY PANEL */}
             <div className="lg:col-span-5 lg:sticky lg:top-24 space-y-6">
-              
+
               {/* Light Blue-Purple Card Container */}
               <div className="bg-[#eff3ff] border border-outline-variant/5 rounded-[32px] p-6 sm:p-8 shadow-[0px_16px_40px_rgba(37,0,90,0.03)] space-y-6 relative overflow-hidden">
-                
+
                 {/* Visual Glassmorphism Glow Effect */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -801,15 +788,15 @@ export function BookingFlow() {
                 {/* Service Card */}
                 <div className="space-y-3">
                   {servicesData.map((service, idx) => (
-                    <div 
-                      key={`${service.slug}-${idx}`} 
+                    <div
+                      key={`${service.slug}-${idx}`}
                       className="bg-white rounded-2xl p-4 flex gap-4 items-center border border-outline-variant/10 shadow-sm transition-all hover:scale-[1.01] duration-300"
                     >
                       {/* Service Thumbnail */}
                       <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-surface-container-low border border-outline-variant/10">
-                        <img 
-                          src={service.image || "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=200"} 
-                          alt={service.label} 
+                        <img
+                          src={service.image || "https://images.unsplash.com/photo-1562322140-8baeececf3df?auto=format&fit=crop&q=80&w=200"}
+                          alt={service.label}
                           className="w-full h-full object-cover"
                         />
                       </div>
@@ -832,7 +819,7 @@ export function BookingFlow() {
 
                 {/* Date & Time Side-by-Side Chips */}
                 <div className="grid grid-cols-2 gap-4">
-                  
+
                   {/* Date Card */}
                   <div className="bg-white rounded-2xl p-4 border border-outline-variant/10 shadow-sm select-none">
                     <span className="text-[9px] font-black uppercase tracking-widest text-[#b4136d] block mb-1">
@@ -907,12 +894,12 @@ export function BookingFlow() {
 
               {/* Artist Profile Card (Below Booking Summary) */}
               <div className="flex items-center gap-3.5 bg-white border border-outline-variant/10 rounded-[28px] p-4.5 shadow-sm max-w-sm mx-auto sm:ml-0 transition-transform hover:scale-[1.01] select-none">
-                
+
                 {/* Artist avatar */}
                 <div className="w-12 h-12 rounded-full overflow-hidden border border-outline-variant/10 shadow-inner flex-shrink-0 bg-surface-container-low">
-                  <img 
-                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuADAbuBiVVuF4bU3Ryk_ykqbGp0R3jvNnhQPSDKrOUapyDRrIwPMs3PvvDOzE2aSgGVe42VzB9FTABxgkoXRnsGW8em_cGpkyyAEUgn6dqwIDi9ON-DG_1bC8MHGLOUuXicwtIdtSkuubPDETpPeye_WYjg35uqFSnj3Ybv7UWYoIH2qIyiqnN2muLLwO8xKOj05oLrFHbLTSfmmhE7fxrH3NJ9kD64cccxL6-XLPlwi8aEwRLok-ie1Lm8G819ZPGh5x_NUlLYqw" 
-                    alt="Shena Artist" 
+                  <img
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuADAbuBiVVuF4bU3Ryk_ykqbGp0R3jvNnhQPSDKrOUapyDRrIwPMs3PvvDOzE2aSgGVe42VzB9FTABxgkoXRnsGW8em_cGpkyyAEUgn6dqwIDi9ON-DG_1bC8MHGLOUuXicwtIdtSkuubPDETpPeye_WYjg35uqFSnj3Ybv7UWYoIH2qIyiqnN2muLLwO8xKOj05oLrFHbLTSfmmhE7fxrH3NJ9kD64cccxL6-XLPlwi8aEwRLok-ie1Lm8G819ZPGh5x_NUlLYqw"
+                    alt="Shena Artist"
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -938,15 +925,15 @@ export function BookingFlow() {
 
           </div>
         ) : (
-          
+
           /* ----------------------------------------------------
              STEP 4: BOOKING SUCCESS / CONFIRMATION PAGE
              ---------------------------------------------------- */
           <div className="max-w-2xl mx-auto py-8 animate-in zoom-in-95 duration-400">
-            
+
             {/* Success Card */}
             <div className="bg-white border border-outline-variant/10 rounded-[36px] p-6 sm:p-10 shadow-[0px_24px_56px_rgba(21,28,39,0.03)] text-center space-y-6 relative overflow-hidden">
-              
+
               {/* Confetti Glow decoration */}
               <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
 
@@ -979,7 +966,7 @@ export function BookingFlow() {
 
               {/* Details Overview Card */}
               <div className="bg-surface-container-low/40 rounded-3xl p-5 sm:p-6 border border-outline-variant/10 text-left space-y-4">
-                
+
                 {/* Header title */}
                 <h4 className="font-extrabold text-sm text-on-surface border-b border-outline-variant/10 pb-2.5 uppercase tracking-wider text-[10px] text-outline">
                   Appointment Details
@@ -987,7 +974,7 @@ export function BookingFlow() {
 
                 {/* Information grid */}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs sm:text-sm">
-                  
+
                   {/* Service item */}
                   <div className="space-y-1">
                     <span className="block text-[10px] font-bold text-outline uppercase tracking-wider">Service</span>
@@ -1069,7 +1056,7 @@ export function BookingFlow() {
           ---------------------------------------------------- */}
       <footer className="w-full bg-[#f9f9ff] py-8 border-t border-outline-variant/5 text-center mt-auto select-none">
         <p className="text-[10px] sm:text-xs text-outline font-semibold tracking-wide">
-          © 2024 Shena Atelier • Bangalore • Mumbai • Delhi
+          © 2024 Shena Atelier • Itanagar • Naharlagun • Pasighat
         </p>
       </footer>
 

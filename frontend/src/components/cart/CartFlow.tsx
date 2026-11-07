@@ -30,7 +30,7 @@ export function CartFlow() {
     {
       id: "item-1",
       name: "Advanced Hair Spa & Gloss",
-      detail: "The Glamour Studio • Mumbai, IN",
+      detail: "The Glamour Studio • Itanagar, AP",
       image: "https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=400",
       price: 3450,
       quantity: 1,

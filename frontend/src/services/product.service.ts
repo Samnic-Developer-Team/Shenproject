@@ -35,9 +35,14 @@ export interface Product {
 }
 
 export async function listProducts(params?: Record<string, string>): Promise<Product[]> {
-  const query = params ? "?" + new URLSearchParams(params).toString() : "";
-  const res = await apiRequest<{ data: Product[] }>(`/products${query}`);
-  return res.data || [];
+  try {
+    const query = params ? "?" + new URLSearchParams(params).toString() : "";
+    const res = await apiRequest<{ data: Product[] }>(`/products${query}`);
+    return res.data || [];
+  } catch (err) {
+    console.warn("Failed to list products:", err);
+    return [];
+  }
 }
 
 export async function createProduct(payload: Record<string, unknown>): Promise<Product> {

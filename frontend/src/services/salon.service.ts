@@ -18,11 +18,18 @@ export interface Seller {
   isApproved: boolean;
   isActive: boolean;
   createdAt?: string;
+  serviceCount?: number;
+  productCount?: number;
 }
 
 export async function listSalons(): Promise<Seller[]> {
-  const res = await apiRequest<{ data: Seller[] }>("/sellers");
-  return res.data || [];
+  try {
+    const res = await apiRequest<{ data: Seller[] }>("/sellers");
+    return res.data || [];
+  } catch (err) {
+    console.warn("Failed to list salons:", err);
+    return [];
+  }
 }
 
 export async function getSalonById(id: string): Promise<Seller | null> {

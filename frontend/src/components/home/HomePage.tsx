@@ -28,7 +28,7 @@ export function HomePage() {
         <NewsletterSection />
       </main>
 
-      {/* Floating Action Button (FAB) for Quick booking/AI recommendation */}
+      {/* Floating Action Button (FAB) for Quick booking/AI recommendation - Hidden by request
       <button 
         onClick={() => alert("Quick Booking Assistant opening...")}
         className="fixed bottom-24 right-6 md:bottom-8 md:right-8 bg-gradient-to-r from-primary to-primary-container text-on-primary p-4 rounded-full shadow-2xl z-30 hover:scale-105 active:scale-95 transition-all duration-300 hover:shadow-primary/20 cursor-pointer"
@@ -37,6 +37,7 @@ export function HomePage() {
           bolt
         </span>
       </button>
+      */}
 
       {/* Footer */}
       <Footer />

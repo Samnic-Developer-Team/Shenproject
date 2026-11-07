@@ -112,60 +112,73 @@ export function SellerLogin() {
   };
 
   return (
-    <div className="bg-[#f6f8fd] text-[#151c27] min-h-screen flex items-center justify-center font-sans antialiased p-4">
+    <div className="bg-gradient-to-br from-[#f8fafc] via-[#f1f5f9] to-[#e2e8f0] text-slate-800 min-h-screen flex items-center justify-center font-sans antialiased p-4 relative overflow-hidden">
       
+      {/* Background Animated/Glow Blobs */}
+      <div className="absolute top-1/4 -left-20 w-96 h-96 bg-primary/5 rounded-full blur-[100px] pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-fuchsia-500/5 rounded-full blur-[100px] pointer-events-none" style={{ animationDelay: '2s' }} />
+
       {/* Container Box */}
-      <div className="max-w-4xl w-full bg-white border border-outline-variant/10 rounded-[36px] shadow-[0px_24px_56px_rgba(21,28,39,0.03)] grid grid-cols-1 md:grid-cols-12 overflow-hidden min-h-[550px]">
+      <div className="max-w-4xl w-full bg-white border border-slate-100 rounded-[36px] shadow-[0px_32px_64px_rgba(30,41,59,0.06)] grid grid-cols-1 md:grid-cols-12 overflow-hidden min-h-[580px] relative z-10 transition-all duration-300">
         
         {/* LEFT COLUMN: BRAND MARKETING (5 cols) */}
-        <div className="md:col-span-5 bg-gradient-to-br from-violet-700 to-[#5a00c6] p-8 text-white flex flex-col justify-between relative overflow-hidden">
+        <div className="md:col-span-5 bg-black p-8 text-white flex flex-col justify-between relative overflow-hidden border-r border-white/5">
+          {/* Subtle Grid pattern overlay */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff02_1px,transparent_1px),linear-gradient(to_bottom,#ffffff02_1px,transparent_1px)] bg-[size:16px_16px]" />
           
           {/* Decorative Glow */}
           <div className="absolute -top-12 -left-12 w-48 h-48 bg-white/5 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-fuchsia-500/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="absolute -bottom-16 -right-16 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none" />
 
           {/* Logo */}
-          <Link href="/" className="text-xl font-bold tracking-tight text-white select-none">
-            Shena Seller
+          <Link href="/" className="flex items-center select-none z-10">
+            <img
+              src="/logo.jpeg"
+              alt="Shena Logo"
+              className="w-20 rounded-2xl object-cover border border-white/20 shadow-md"
+            />
           </Link>
 
           {/* Marketing text */}
-          <div className="space-y-6 my-8 md:my-0 select-none">
-            <h2 className="text-2xl sm:text-3xl font-black leading-tight tracking-tight">
-              Manage Your Business
+          <div className="space-y-6 my-8 md:my-0 select-none z-10">
+            <h2 className="text-3xl font-black leading-tight tracking-tight text-white">
+              Elevate Your <br /> Salon Business
             </h2>
-            <p className="text-xs text-white/80 leading-relaxed font-medium">
-              Access your real-time performance metrics, keep track of all appointments, edit product inventories, and check payouts.
+            <p className="text-xs text-white/80 leading-relaxed font-semibold">
+              Access real-time performance analytics, manage client appointments, maintain your service boutique, and secure swift payouts from Arunachal's premium salon network.
             </p>
             
             {/* Quick stats indicators */}
-            <div className="grid grid-cols-2 gap-4 pt-4 text-xs font-semibold text-white/95">
+            <div className="grid grid-cols-2 gap-4 pt-4">
               <div className="bg-white/10 rounded-2xl p-3 border border-white/5">
                 <span className="block text-[8px] font-black uppercase text-white/60 tracking-wider">Active Bookings</span>
-                <span className="text-base font-black mt-1 block">12 Today</span>
+                <span className="text-sm font-black mt-0.5 block text-white">12 Today</span>
               </div>
               <div className="bg-white/10 rounded-2xl p-3 border border-white/5">
                 <span className="block text-[8px] font-black uppercase text-white/60 tracking-wider">Average Rating</span>
-                <span className="text-base font-black mt-1 block">4.9 ★</span>
+                <span className="text-sm font-black mt-0.5 block text-pink-300 flex items-center gap-0.5">
+                  4.9 <span className="material-symbols-outlined text-[10px] text-pink-300 select-none">star</span>
+                </span>
               </div>
             </div>
           </div>
 
-          {/* Copyright copyright */}
-          <p className="text-[9px] text-white/60 font-medium select-none">
-            © 2024 Shena Atelier • Bangalore • Delhi
+          {/* Copyright */}
+          <p className="text-[9px] text-white/60 font-semibold select-none z-10 flex items-center gap-1.5">
+            <span className="material-symbols-outlined text-[10px] text-white/40">location_on</span>
+            <span>© 2026 Shena Atelier • Itanagar • Naharlagun • Pasighat</span>
           </p>
 
         </div>
 
         {/* RIGHT COLUMN: LOGIN FORM (7 cols) */}
-        <form onSubmit={handleSubmit} className="md:col-span-7 p-8 sm:p-10 flex flex-col justify-center space-y-6">
+        <form onSubmit={handleSubmit} className="md:col-span-7 p-8 sm:p-10 flex flex-col justify-center space-y-6 bg-white">
           
           <div className="space-y-1.5 select-none">
-            <h1 className="text-2xl font-black text-on-surface tracking-tight">
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
               Seller Portal Sign In
             </h1>
-            <p className="text-xs text-on-surface-variant font-medium">
+            <p className="text-xs text-slate-400 font-semibold">
               Log in to access your shop dashboard and bookings.
             </p>
           </div>
@@ -175,40 +188,47 @@ export function SellerLogin() {
             
             {/* Error display */}
             {error && (
-              <div className="bg-rose-50 border border-rose-100 text-rose-700 text-xs font-bold rounded-2xl px-4 py-2.5 animate-in slide-in-from-top-2 duration-300">
-                {error}
+              <div className="bg-rose-50 border border-rose-100 text-rose-700 text-xs font-semibold rounded-2xl px-4 py-2.5 flex items-center gap-2 animate-in slide-in-from-top-2 duration-300">
+                <span className="material-symbols-outlined text-base">error</span>
+                <span>{error}</span>
               </div>
             )}
 
             {/* Input: Email */}
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-wider text-outline block">Email Address</label>
-              <input
-                type="email"
-                required
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
-                placeholder="name@studio.com"
-              />
+              <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Email Address</label>
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-450 text-base pointer-events-none">mail</span>
+                <input
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full bg-[#f8fafc] border border-slate-200/60 focus:border-black focus:bg-white focus:ring-2 focus:ring-black/10 rounded-2xl pl-11 pr-4 py-3.5 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all duration-200"
+                  placeholder="name@studio.com"
+                />
+              </div>
             </div>
 
             {/* Input: Password */}
             <div className="space-y-1.5">
               <div className="flex justify-between items-center">
-                <label className="text-[10px] font-black uppercase tracking-wider text-outline block">Password</label>
-                <a href="#" onClick={(e) => { e.preventDefault(); alert("Use shena@example.com / password or create a new account."); }} className="text-[10px] text-primary hover:underline font-bold">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-400 block">Password</label>
+                <a href="#" onClick={(e) => { e.preventDefault(); alert("Use shena@example.com / password or create a new account."); }} className="text-[10px] text-black hover:underline font-extrabold transition-colors">
                   Forgot Password?
                 </a>
               </div>
-              <input
-                type="password"
-                required
-                value={formData.password}
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full bg-[#f6f8fd] border border-outline-variant/20 focus:border-primary focus:ring-2 focus:ring-primary/10 rounded-2xl px-4 py-2.5 text-xs font-semibold focus:outline-none"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <span className="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-slate-455 text-base pointer-events-none">lock</span>
+                <input
+                  type="password"
+                  required
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full bg-[#f8fafc] border border-slate-200/60 focus:border-black focus:bg-white focus:ring-2 focus:ring-black/10 rounded-2xl pl-11 pr-4 py-3.5 text-xs font-bold text-slate-800 placeholder-slate-400 focus:outline-none transition-all duration-200"
+                  placeholder="••••••••"
+                />
+              </div>
             </div>
 
           </div>
@@ -218,34 +238,39 @@ export function SellerLogin() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-3.5 rounded-2xl font-extrabold text-sm shadow-lg transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer bg-gradient-to-r from-primary to-[#5a00c6] text-white shadow-primary/20 hover:opacity-[0.97]"
+              className="w-full py-4 rounded-2xl font-black text-xs uppercase tracking-wider shadow-lg shadow-black/10 hover:shadow-black/20 transition-all duration-300 hover:scale-[1.01] active:scale-[0.98] flex items-center justify-center gap-2 cursor-pointer bg-black text-white hover:bg-neutral-900 disabled:opacity-50"
             >
               {isSubmitting ? (
                 <span className="flex items-center gap-2">
-                  <span className="w-5 h-5 rounded-full border-2 border-white/20 border-t-white animate-spin"></span>
+                  <span className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin"></span>
                   Logging In...
                 </span>
               ) : (
-                "LOG IN"
+                <>
+                  <span>Sign In</span>
+                  <span className="material-symbols-outlined text-sm">login</span>
+                </>
               )}
             </button>
 
-            <p className="text-center text-xs text-outline font-semibold select-none">
+            <p className="text-center text-xs text-slate-450 font-semibold select-none">
               New to Shena Seller?{" "}
-              <Link href="/seller/register" className="text-primary hover:underline font-extrabold">
+              <Link href="/seller/register" className="text-black hover:underline font-extrabold transition-colors">
                 Register here
               </Link>
             </p>
           </div>
 
           {/* Quick Mock Login Notice */}
-          <div className="bg-violet-50/70 border border-violet-100/50 rounded-2xl p-3.5 select-none">
-            <div className="flex items-start gap-2.5">
-              <span className="material-symbols-outlined text-sm font-bold text-primary mt-0.5">info</span>
+          <div className="bg-[#f8fafc] border border-slate-100 rounded-2xl p-4 select-none relative overflow-hidden group">
+            {/* Subtle glow highlight on hover */}
+            <div className="absolute inset-0 bg-gradient-to-r from-black/3 to-neutral-900/3 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+            <div className="flex items-start gap-3 relative z-10">
+              <span className="material-symbols-outlined text-sm font-bold text-black mt-0.5 bg-black/10 p-1.5 rounded-lg">info</span>
               <div>
-                <h4 className="text-[10px] font-black text-primary uppercase tracking-wider">Demo / testing account</h4>
-                <p className="text-[10px] text-on-surface-variant font-medium mt-0.5 leading-relaxed">
-                  We prefilled the mockup partner profile <strong className="text-primary font-bold">shena@example.com</strong> / <strong className="text-primary font-bold">password</strong> to let you sign in and see the dashboard immediately!
+                <h4 className="text-[10px] font-black text-black uppercase tracking-wider">Demo / testing account</h4>
+                <p className="text-[10px] text-slate-455 font-semibold mt-0.5 leading-relaxed">
+                  We prefilled the mockup partner profile <strong className="text-black font-black">shena@example.com</strong> / <strong className="text-black font-bold">password</strong> to let you sign in and see the dashboard immediately!
                 </p>
               </div>
             </div>

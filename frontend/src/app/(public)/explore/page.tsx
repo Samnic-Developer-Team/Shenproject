@@ -1,25 +1,68 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/common/Container";
 import { ExploreHero } from "@/components/explore/ExploreHero";
 import { SalonCard } from "@/components/salon/SalonCard";
 import { ServiceCard } from "@/components/service/ServiceCard";
-import { salons } from "@/data/salons";
+import { listSalons } from "@/services/salon.service";
+import { listActiveLocations, type Location } from "@/services/location.service";
 import { services } from "@/data/services";
 import { BecomeSellerSection } from "@/components/home/BecomeSellerSection";
 
-export default function ExplorePage() {
+function ExplorePageContent() {
   const [activeTab, setActiveTab] = useState<"salons" | "services">("salons");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("all");
   const [selectedCategory, setSelectedCategory] = useState("all");
 
+  const [locations, setLocations] = useState<Location[]>([]);
+  const [salonsList, setSalonsList] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const searchParams = useSearchParams();
+
+  // Load locations and salons on mount
+  useEffect(() => {
+    Promise.all([listActiveLocations(), listSalons()])
+      .then(([locs, sellers]) => {
+        setLocations(locs);
+
+        // Normalize sellers to match salon layout requirements
+        const normalized = sellers.map((s) => ({
+          slug: s._id,
+          name: s.salonName,
+          rating: "4.8",
+          distance: `${s.city}, ${s.state}`,
+          price: "₹₹₹",
+          description: s.bio || "",
+          location: `${s.city}, ${s.state}`,
+          image: s.shopImage,
+          serviceCount: s.serviceCount,
+          productCount: s.productCount,
+        }));
+        setSalonsList(normalized);
+
+        // Read query parameters
+        const paramSearch = searchParams.get("search");
+        const paramLoc = searchParams.get("location");
+        if (paramSearch) {
+          setSearchQuery(paramSearch);
+        }
+        if (paramLoc) {
+          setSelectedLocation(paramLoc.toLowerCase());
+        }
+      })
+      .catch(console.error)
+      .finally(() => setIsLoading(false));
+  }, [searchParams]);
+
   // Dynamic lists filtering
   const filteredSalons = useMemo(() => {
-    let result = [...salons];
+    let result = [...salonsList];
 
     if (searchQuery.trim() !== "") {
       const q = searchQuery.toLowerCase();
@@ -38,7 +81,7 @@ export default function ExplorePage() {
     }
 
     return result;
-  }, [searchQuery, selectedLocation]);
+  }, [searchQuery, selectedLocation, salonsList]);
 
   const filteredServices = useMemo(() => {
     let result = [...services];
@@ -123,9 +166,14 @@ export default function ExplorePage() {
                     className="bg-surface-container-low border border-outline-variant/10 rounded-xl px-4 py-2.5 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-primary/20 text-on-surface transition-all cursor-pointer"
                   >
                     <option value="all">All Locations</option>
-                    <option value="itanagar">Itanagar</option>
-                    <option value="guwahati">Guwahati</option>
-                    <option value="papum">Papum Pare</option>
+                    {locations.map((loc) => {
+                      const val = `${loc.city}, ${loc.state}`;
+                      return (
+                        <option key={loc._id} value={val.toLowerCase()}>
+                          {loc.city}, {loc.state}
+                        </option>
+                      );
+                    })}
                   </select>
                 </div>
               ) : (
@@ -149,7 +197,13 @@ export default function ExplorePage() {
           </div>
 
           {/* Grids Display Area */}
-          {activeTab === "salons" ? (
+          {isLoading ? (
+            <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-72 bg-surface-container-low rounded-3xl animate-pulse" />
+              ))}
+            </div>
+          ) : activeTab === "salons" ? (
             filteredSalons.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-20 text-on-surface-variant">
                 <span className="material-symbols-outlined text-5xl mb-4 text-outline-variant" style={{ fontVariationSettings: "'FILL' 0" }}>
@@ -191,5 +245,17 @@ export default function ExplorePage() {
       {/* Footer Area */}
       <Footer />
     </div>
+  );
+}
+
+export default function ExplorePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-surface">
+        <div className="animate-pulse text-primary font-bold text-sm">Loading Explore Boutique...</div>
+      </div>
+    }>
+      <ExplorePageContent />
+    </Suspense>
   );
 }

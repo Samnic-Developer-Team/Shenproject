@@ -11,4 +11,14 @@ export const adminController = {
       next(error);
     }
   },
+
+  getStats: async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const stats = await adminService.getStats();
+      sendResponse({ res, message: 'Admin stats fetched', data: stats });
+    } catch (error) {
+      next(error);
+    }
+  },
 };
+

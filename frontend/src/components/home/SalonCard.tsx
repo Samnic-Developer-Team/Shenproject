@@ -7,7 +7,10 @@ interface SalonCardProps {
 
 export function SalonCard({ salon }: SalonCardProps) {
   return (
-    <div className="shrink-0 w-80 bg-surface-container-lowest rounded-3xl overflow-hidden border border-outline-variant/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group select-none">
+    <Link 
+      href={`/salons/${salon.slug}`}
+      className="block shrink-0 w-80 bg-surface-container-lowest rounded-3xl overflow-hidden border border-outline-variant/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group select-none cursor-pointer"
+    >
       {/* Salon Image wrapper with Rating Badge */}
       <div className="h-48 relative overflow-hidden">
         {salon.image ? (
@@ -46,21 +49,20 @@ export function SalonCard({ salon }: SalonCardProps) {
 
         {/* Pricing and Action */}
         <div className="flex items-center justify-between border-t border-outline-variant/10 pt-4">
-          <span className="text-primary font-extrabold text-base tracking-wide">
-            {salon.price || "₹₹"}
+          <span className="text-on-surface-variant font-bold text-xs tracking-normal">
+            {salon.serviceCount ?? 0} Services • {salon.productCount ?? 0} Products
           </span>
-          <Link 
-            href={`/salons/${salon.slug}`}
+          <span 
             className="text-primary font-bold text-sm flex items-center gap-1 group/btn"
           >
             Book Now
             <span className="material-symbols-outlined !text-sm group-hover/btn:translate-x-1.5 transition-transform duration-300 select-none">
               arrow_forward
             </span>
-          </Link>
+          </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

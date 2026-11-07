@@ -9,9 +9,12 @@ interface SalonCardProps {
 
 export function SalonCard({ salon }: SalonCardProps) {
   return (
-    <div className="bg-surface-container-lowest rounded-3xl overflow-hidden border border-outline-variant/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group select-none flex flex-col h-full">
+    <Link 
+      href={`/salons/${salon.slug}`}
+      className="bg-surface-container-lowest rounded-3xl overflow-hidden border border-outline-variant/10 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group select-none flex flex-col h-full cursor-pointer"
+    >
       {/* Salon Banner Image with Rating Overlay */}
-      <Link href={`/salons/${salon.slug}`} className="relative block aspect-[16/10] w-full overflow-hidden bg-surface-container-low cursor-pointer">
+      <div className="relative block aspect-[16/10] w-full overflow-hidden bg-surface-container-low">
         {salon.image ? (
           <img
             alt={salon.name}
@@ -37,16 +40,14 @@ export function SalonCard({ salon }: SalonCardProps) {
             </span>
           </div>
         )}
-      </Link>
+      </div>
 
       {/* Salon Details Box */}
       <div className="p-6 flex flex-col flex-grow">
         {/* Name */}
-        <Link href={`/salons/${salon.slug}`} className="cursor-pointer">
-          <h3 className="text-xl font-bold text-on-surface mb-2 group-hover:text-primary transition-colors line-clamp-1">
-            {salon.name}
-          </h3>
-        </Link>
+        <h3 className="text-xl font-bold text-on-surface mb-2 group-hover:text-primary transition-colors line-clamp-1">
+          {salon.name}
+        </h3>
 
         {/* Location / Neighborhood */}
         <p className="text-on-surface-variant text-sm mb-4 flex items-center gap-1.5 font-medium">
@@ -65,21 +66,20 @@ export function SalonCard({ salon }: SalonCardProps) {
 
         {/* Price Level & Book CTA */}
         <div className="flex items-center justify-between border-t border-outline-variant/10 pt-4 mt-auto">
-          <span className="text-primary font-extrabold text-base tracking-widest">
-            {salon.price || "₹₹"}
+          <span className="text-on-surface-variant font-bold text-xs tracking-normal">
+            {salon.serviceCount ?? 0} Services • {salon.productCount ?? 0} Products
           </span>
-          <Link
-            href={`/salons/${salon.slug}`}
+          <span
             className="text-primary font-bold text-sm flex items-center gap-1 group/btn cursor-pointer active:scale-95 transition-all"
           >
             Book Now
             <span className="material-symbols-outlined !text-sm group-hover/btn:translate-x-1.5 transition-transform duration-300 select-none">
               arrow_forward
             </span>
-          </Link>
+          </span>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
 

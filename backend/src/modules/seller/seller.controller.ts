@@ -5,6 +5,10 @@ import { sellerService } from './seller.service';
 import { SellerModel } from './seller.model';
 import { ApiError } from '../../utils/ApiError';
 import { uploadToCloudinary } from '../../utils/uploadToCloudinary';
+import { ServiceModel } from '../service/service.model';
+import { ProductModel } from '../product/product.model';
+import { AuthUserModel } from '../auth/auth.model';
+import { locationService } from '../location/location.service';
 
 export const sellerController = {
   listAll: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -13,7 +17,22 @@ export const sellerController = {
         .select('-password')
         .sort({ createdAt: -1 })
         .lean();
-      sendResponse({ res, message: 'Sellers fetched', data: sellers });
+
+      const sellersWithCounts = await Promise.all(
+        sellers.map(async (seller) => {
+          const [serviceCount, productCount] = await Promise.all([
+            ServiceModel.countDocuments({ sellerId: seller._id }),
+            ProductModel.countDocuments({ sellerId: seller._id }),
+          ]);
+          return {
+            ...seller,
+            serviceCount,
+            productCount,
+          };
+        })
+      );
+
+      sendResponse({ res, message: 'Sellers fetched', data: sellersWithCounts });
     } catch (error) {
       next(error);
     }
@@ -22,6 +41,9 @@ export const sellerController = {
   create: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const seller = await sellerService.create(req.body);
+      if (seller && seller.city && seller.state) {
+        await locationService.autoUpsert(seller.city, seller.state);
+      }
       sendResponse({ res, statusCode: 201, message: 'Seller created', data: seller });
     } catch (error) {
       next(error);
@@ -79,6 +101,10 @@ export const sellerController = {
         isApproved: true,
       });
 
+      if (seller && seller.city && seller.state) {
+        await locationService.autoUpsert(seller.city, seller.state);
+      }
+
       sendResponse({ res, statusCode: 201, message: 'Seller profile registered', data: seller });
     } catch (error) {
       next(error);
@@ -100,6 +126,9 @@ export const sellerController = {
       if (!seller) {
         throw new ApiError(404, 'Seller profile not found');
       }
+      if (seller.city && seller.state) {
+        await locationService.autoUpsert(seller.city, seller.state);
+      }
       sendResponse({ res, message: 'Seller profile updated', data: seller });
     } catch (error) {
       next(error);
@@ -113,6 +142,61 @@ export const sellerController = {
         throw new ApiError(404, 'Seller profile not found');
       }
       sendResponse({ res, message: 'Seller profile fetched', data: seller });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  listAllAdmin: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const sellers = await sellerService.listAllAdmin();
+      sendResponse({ res, message: 'Sellers fetched for admin', data: sellers });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  toggleActive: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const result = await sellerService.toggleActive(String(req.params.id));
+      sendResponse({ res, message: 'Seller active status toggled', data: result });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  updateById: async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const { id } = req.params;
+      
+      if (req.body.shopImage && req.body.shopImage.startsWith('data:image')) {
+        req.body.shopImage = await uploadToCloudinary(req.body.shopImage, 'sellers');
+      }
+
+      const oldSeller = await SellerModel.findById(id);
+      if (!oldSeller) {
+        throw new ApiError(404, 'Seller profile not found');
+      }
+
+      const seller = await SellerModel.findByIdAndUpdate(id, req.body, { new: true });
+      
+      // Sync credentials if name or email changed
+      if (req.body.email || req.body.ownerName) {
+        const updateFields: any = {};
+        if (req.body.email) updateFields.email = req.body.email;
+        if (req.body.ownerName) updateFields.name = req.body.ownerName;
+        
+        await AuthUserModel.findOneAndUpdate(
+          { email: oldSeller.email },
+          updateFields
+        );
+      }
+
+      if (seller && seller.city && seller.state) {
+        await locationService.autoUpsert(seller.city, seller.state);
+      }
+
+      sendResponse({ res, message: 'Seller profile updated', data: seller });
     } catch (error) {
       next(error);
     }

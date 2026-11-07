@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { authMiddleware } from '../../middleware/auth.middleware';
+import { roleGuard } from '../../middleware/role.middleware';
 import { validateRequest } from '../../middleware/validate.middleware';
 import { userController } from './user.controller';
 import { updateUserSchema, addressSchema, wishlistParamSchema } from './user.validation';
@@ -12,5 +13,9 @@ router.post('/address', authMiddleware, validateRequest(addressSchema), userCont
 router.post('/wishlist/:productId', authMiddleware, validateRequest(wishlistParamSchema), userController.toggleWishlist);
 router.get('/orders', authMiddleware, userController.orders);
 router.get('/bookings', authMiddleware, userController.bookings);
+
+// Admin user management routes
+router.get('/', authMiddleware, roleGuard.admin, userController.listAllUsers);
+router.patch('/:id/toggle-active', authMiddleware, roleGuard.admin, userController.toggleActive);
 
 export default router;

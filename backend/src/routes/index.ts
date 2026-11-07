@@ -9,6 +9,7 @@ import sellerRoutes from './seller.route';
 import serviceRoutes from './service.route';
 import trackingRoutes from './tracking.route';
 import userRoutes from './user.route';
+import locationRoutes from './location.route';
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use('/orders', orderRoutes);
 router.use('/tracking', trackingRoutes);
 router.use('/reviews', reviewRoutes);
 router.use('/admins', adminRoutes);
+router.use('/locations', locationRoutes);
 
 export default router;

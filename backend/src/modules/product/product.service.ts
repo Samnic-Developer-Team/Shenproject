@@ -23,7 +23,17 @@ export const productService = {
   },
 
   async findAll(query: Record<string, unknown>) {
-    return ProductModel.find(query).sort({ createdAt: -1 }).lean();
+    const { limit, page, sortBy, sortOrder, ...filters } = query;
+    const mongooseQuery = ProductModel.find(filters).populate('sellerId');
+    if (limit) {
+      mongooseQuery.limit(Number(limit));
+    }
+    if (page && limit) {
+      mongooseQuery.skip((Number(page) - 1) * Number(limit));
+    }
+    const sortField = (sortBy as string) || 'createdAt';
+    const order = sortOrder === 'asc' ? 1 : -1;
+    return mongooseQuery.sort({ [sortField]: order }).lean();
   },
 
   async update(productId: string, payload: Record<string, unknown>) {

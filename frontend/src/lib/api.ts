@@ -20,20 +20,39 @@ export async function apiRequest<T = any>(endpoint: string, options: RequestOpti
   const url = `${BASE_URL}${endpoint.startsWith("/") ? "" : "/"}${endpoint}`;
   
   const response = await fetch(url, {
+    cache: "no-store",
     ...options,
     headers,
   });
 
-  const text = await response.text();
-  let json: any;
+  let text = "";
   try {
-    json = text ? JSON.parse(text) : {};
-  } catch (e) {
-    throw new Error(`Invalid JSON response: ${text}`);
+    text = await response.text();
+  } catch (err) {
+    throw new Error(`Failed to read response from ${url}: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  let json: any = null;
+  if (text) {
+    try {
+      json = JSON.parse(text);
+    } catch {
+      // Non-JSON response (e.g. HTML error page or plain text)
+      if (!response.ok) {
+        throw new Error(
+          `Request to ${endpoint} failed with HTTP ${response.status} (${response.statusText}). Is the backend running on port 5000?`
+        );
+      }
+      throw new Error(
+        `Invalid JSON response from ${endpoint}: ${text.slice(0, 120)}${text.length > 120 ? "..." : ""}`
+      );
+    }
+  } else {
+    json = {};
   }
 
   if (!response.ok) {
-    throw new Error(json.message || `Request failed with status ${response.status}`);
+    throw new Error(json?.message || `Request to ${endpoint} failed with status ${response.status}`);
   }
 
   return json;
