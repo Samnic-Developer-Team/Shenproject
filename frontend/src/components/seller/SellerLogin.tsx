@@ -1,31 +1,35 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { apiRequest } from "@/lib/api";
+
+interface AuthResponse {
+  data: {
+    user: {
+      name: string;
+      email: string;
+    };
+    tokens: {
+      accessToken: string;
+    };
+  };
+}
 
 export function SellerLogin() {
   const router = useRouter();
 
   // ----------------------------------------------------
-  // Form states
+  // Form states (pre-filled with mockup credentials for testing)
   // ----------------------------------------------------
   const [formData, setFormData] = useState({
-    email: "",
-    password: "",
+    email: "shena@example.com",
+    password: "password",
   });
 
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Pre-fill mockup credentials on mount for easy testing
-  useEffect(() => {
-    setFormData({
-      email: "shena@example.com",
-      password: "password",
-    });
-  }, []);
 
   // ----------------------------------------------------
   // Submit Handler
@@ -45,14 +49,14 @@ export function SellerLogin() {
       const emailInput = formData.email.toLowerCase().trim();
       const passwordInput = formData.password;
 
-      let authData: any;
+      let authData: AuthResponse | null = null;
       try {
         // Attempt backend login
-        authData = await apiRequest("/auth/login", {
+        authData = await apiRequest<AuthResponse>("/auth/login", {
           method: "POST",
           bodyData: { email: emailInput, password: passwordInput }
         });
-      } catch (loginErr: any) {
+      } catch (loginErr: unknown) {
         // If it's the mock user and not registered, auto-register them
         if (emailInput === "shena@example.com" && passwordInput === "password") {
           try {
@@ -61,12 +65,13 @@ export function SellerLogin() {
               bodyData: { name: "Shena", email: emailInput, password: passwordInput, role: "SELLER" }
             });
             // Try login again
-            authData = await apiRequest("/auth/login", {
+            authData = await apiRequest<AuthResponse>("/auth/login", {
               method: "POST",
               bodyData: { email: emailInput, password: passwordInput }
             });
-          } catch (regErr: any) {
-            throw new Error(`Auto-registration failed: ${regErr.message}`);
+          } catch (regErr: unknown) {
+            const regMsg = regErr instanceof Error ? regErr.message : String(regErr);
+            throw new Error(`Auto-registration failed: ${regMsg}`);
           }
         } else {
           throw loginErr;
@@ -86,7 +91,7 @@ export function SellerLogin() {
 
         // Fetch their shop profile from the backend
         try {
-          const profileData = await apiRequest("/sellers/me", {
+          const profileData = await apiRequest<{ data?: Record<string, unknown> | null }>("/sellers/me", {
             method: "GET"
           });
 
@@ -103,9 +108,10 @@ export function SellerLogin() {
 
         router.push("/seller");
       }
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error(e);
-      setError(e.message || "Invalid email address or password. Please try again.");
+      const errMsg = e instanceof Error ? e.message : "Invalid email address or password. Please try again.";
+      setError(errMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -145,7 +151,7 @@ export function SellerLogin() {
               Elevate Your <br /> Salon Business
             </h2>
             <p className="text-xs text-white/80 leading-relaxed font-semibold">
-              Access real-time performance analytics, manage client appointments, maintain your service boutique, and secure swift payouts from Arunachal's premium salon network.
+              Access real-time performance analytics, manage client appointments, maintain your service boutique, and secure swift payouts from Arunachal&apos;s premium salon network.
             </p>
             
             {/* Quick stats indicators */}
